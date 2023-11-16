@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package aliyun_pb;
+option go_package = "../aliyun_pb;aliyun_pb";
+
+// 支付请求参数
+message PayRequest {
+  string Subject = 1;
+  string OutTradeNo = 2;
+  string TotalAmount = 3;
+  string ProductCode = 4;
+  string NotifyURL = 5;
+  string ReturnURL = 6;
+  string QuitURL = 7;
+  string BuyerId = 8;
+  string BuyerOpenId = 9;
+  string OpAppId = 10;
+  string AuthToken = 11;
+  string AppAuthToken = 12;
+  string AppId = 13;
+}
+
+// 支付返回参数，只有APP与小程序
+message PayReply {
+  string PayURL = 1;
+  string TradeNo = 2;
+  string OutTradeNo = 3;
+}
+
+// 支付查询
+message PayQueryRequest {
+  string OutTradeNo = 1;
+  string TradeNo = 2;
+  string AppAuthToken = 3;
+  string AppId = 4;
+}
+
+// 支付查询返回
+message PayQueryReply {
+  bytes QueryResult = 1;
+}
+
+// 退款请求
+message RefundRequest {
+  string OutTradeNo = 1;
+  string TradeNo = 2;
+  string RefundAmount = 3;
+  string RefundReason = 4;
+  string OutRequestNo = 5;
+  string AppId = 6;
+}
+
+// 退款结果
+message RefundReply {
+  bytes RefundResult = 1;
+}
+
+service AliPay {
+  rpc TradeAppPay (PayRequest) returns (PayReply) {}
+  rpc TradePagePay (PayRequest) returns (PayReply) {}
+  rpc TradeCreate (PayRequest) returns (PayReply) {}
+  rpc TradeQuery (PayQueryRequest) returns (PayQueryReply) {}
+  rpc TradeRefund (RefundRequest) returns (RefundReply) {}
+}

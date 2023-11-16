@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package aliyun_pb;
+option go_package = "../aliyun_pb;aliyun_pb";
+
+// 支付宝小程序登录请求参数
+message MpLoginRequest {
+  string GrantType = 1;
+  string Code = 2;
+  string RefreshToken = 3;
+  string AppId = 4;
+}
+
+// 支付宝小程序登录返回参数
+message MpLoginReply {
+  string UserId = 1;
+  string OpenId = 2;
+  string AccessToken = 3;
+}
+
+// 支付宝小程序用户信息请求参数
+message MpUserInfoRequest {
+  string AuthToken = 1;
+  string AppId = 2;
+}
+
+// 支付宝小程序用户信息返回参数
+message MpUserInfoReply {
+  string UserId = 1;
+  string OpenId = 2;
+  string Avatar = 3;
+  string City = 4;
+  string NickName = 5;
+  string Province = 6;
+  string Gender = 7;
+}
+
+service AliMpLogin {
+  rpc SystemOauthToken (MpLoginRequest) returns (MpLoginReply) {}
+  rpc UserInfoShare (MpUserInfoRequest) returns (MpUserInfoReply) {}
+}
