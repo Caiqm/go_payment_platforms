@@ -12,6 +12,7 @@ type AliPay struct {
 	pb.UnimplementedAliPayServer
 }
 
+// 支付宝APP支付
 func (ap *AliPay) TradeAppPay(ctx context.Context, req *pb.PayRequest) (rpy *pb.PayReply, err error) {
 	var p = alipay.TradeAppPay{}
 	p.NotifyURL = req.NotifyURL
@@ -32,7 +33,22 @@ func (ap *AliPay) TradePagePay(ctx context.Context, req *pb.PayRequest) (rpy *pb
 	return nil, status.Errorf(codes.Unimplemented, "method TradePagePay not implemented")
 }
 
+// 支付宝小程序支付
 func (ap *AliPay) TradeCreate(ctx context.Context, req *pb.PayRequest) (rpy *pb.PayReply, err error) {
+	var p = alipay.TradeCreate{}
+	p.NotifyURL = req.NotifyURL
+	p.Subject = req.Subject
+	p.OutTradeNo = req.OutTradeNo
+	p.TotalAmount = req.TotalAmount
+	p.ProductCode = req.ProductCode
+	p.BuyerId = req.BuyerId
+	client := alipay.New(req.AppId, "", false)
+	param, err := client.TradeCreate(p)
+	if err != nil {
+		return
+	}
+	rpy.TradeNo = param.TradeNo
+	rpy.OutTradeNo = param.OutTradeNo
 	return nil, status.Errorf(codes.Unimplemented, "method TradeCreate not implemented")
 }
 
