@@ -19,11 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AliPay_TradeAppPay_FullMethodName  = "/aliyun_pb.AliPay/TradeAppPay"
-	AliPay_TradePagePay_FullMethodName = "/aliyun_pb.AliPay/TradePagePay"
-	AliPay_TradeCreate_FullMethodName  = "/aliyun_pb.AliPay/TradeCreate"
-	AliPay_TradeQuery_FullMethodName   = "/aliyun_pb.AliPay/TradeQuery"
-	AliPay_TradeRefund_FullMethodName  = "/aliyun_pb.AliPay/TradeRefund"
+	AliPay_TradeAppPay_FullMethodName             = "/aliyun_pb.AliPay/TradeAppPay"
+	AliPay_TradePagePay_FullMethodName            = "/aliyun_pb.AliPay/TradePagePay"
+	AliPay_TradeCreate_FullMethodName             = "/aliyun_pb.AliPay/TradeCreate"
+	AliPay_TradeWapPay_FullMethodName             = "/aliyun_pb.AliPay/TradeWapPay"
+	AliPay_TradeQuery_FullMethodName              = "/aliyun_pb.AliPay/TradeQuery"
+	AliPay_TradeRefund_FullMethodName             = "/aliyun_pb.AliPay/TradeRefund"
+	AliPay_TradeFastPayRefundQuery_FullMethodName = "/aliyun_pb.AliPay/TradeFastPayRefundQuery"
 )
 
 // AliPayClient is the client API for AliPay service.
@@ -33,8 +35,10 @@ type AliPayClient interface {
 	TradeAppPay(ctx context.Context, in *PayRequest, opts ...grpc.CallOption) (*PayReply, error)
 	TradePagePay(ctx context.Context, in *PayRequest, opts ...grpc.CallOption) (*PayReply, error)
 	TradeCreate(ctx context.Context, in *PayRequest, opts ...grpc.CallOption) (*PayReply, error)
+	TradeWapPay(ctx context.Context, in *PayRequest, opts ...grpc.CallOption) (*PayReply, error)
 	TradeQuery(ctx context.Context, in *PayQueryRequest, opts ...grpc.CallOption) (*PayQueryReply, error)
 	TradeRefund(ctx context.Context, in *RefundRequest, opts ...grpc.CallOption) (*RefundReply, error)
+	TradeFastPayRefundQuery(ctx context.Context, in *RefundQueryRequest, opts ...grpc.CallOption) (*RefundQueryReply, error)
 }
 
 type aliPayClient struct {
@@ -72,6 +76,15 @@ func (c *aliPayClient) TradeCreate(ctx context.Context, in *PayRequest, opts ...
 	return out, nil
 }
 
+func (c *aliPayClient) TradeWapPay(ctx context.Context, in *PayRequest, opts ...grpc.CallOption) (*PayReply, error) {
+	out := new(PayReply)
+	err := c.cc.Invoke(ctx, AliPay_TradeWapPay_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aliPayClient) TradeQuery(ctx context.Context, in *PayQueryRequest, opts ...grpc.CallOption) (*PayQueryReply, error) {
 	out := new(PayQueryReply)
 	err := c.cc.Invoke(ctx, AliPay_TradeQuery_FullMethodName, in, out, opts...)
@@ -90,6 +103,15 @@ func (c *aliPayClient) TradeRefund(ctx context.Context, in *RefundRequest, opts 
 	return out, nil
 }
 
+func (c *aliPayClient) TradeFastPayRefundQuery(ctx context.Context, in *RefundQueryRequest, opts ...grpc.CallOption) (*RefundQueryReply, error) {
+	out := new(RefundQueryReply)
+	err := c.cc.Invoke(ctx, AliPay_TradeFastPayRefundQuery_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AliPayServer is the server API for AliPay service.
 // All implementations must embed UnimplementedAliPayServer
 // for forward compatibility
@@ -97,8 +119,10 @@ type AliPayServer interface {
 	TradeAppPay(context.Context, *PayRequest) (*PayReply, error)
 	TradePagePay(context.Context, *PayRequest) (*PayReply, error)
 	TradeCreate(context.Context, *PayRequest) (*PayReply, error)
+	TradeWapPay(context.Context, *PayRequest) (*PayReply, error)
 	TradeQuery(context.Context, *PayQueryRequest) (*PayQueryReply, error)
 	TradeRefund(context.Context, *RefundRequest) (*RefundReply, error)
+	TradeFastPayRefundQuery(context.Context, *RefundQueryRequest) (*RefundQueryReply, error)
 	mustEmbedUnimplementedAliPayServer()
 }
 
@@ -115,11 +139,17 @@ func (UnimplementedAliPayServer) TradePagePay(context.Context, *PayRequest) (*Pa
 func (UnimplementedAliPayServer) TradeCreate(context.Context, *PayRequest) (*PayReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TradeCreate not implemented")
 }
+func (UnimplementedAliPayServer) TradeWapPay(context.Context, *PayRequest) (*PayReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TradeWapPay not implemented")
+}
 func (UnimplementedAliPayServer) TradeQuery(context.Context, *PayQueryRequest) (*PayQueryReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TradeQuery not implemented")
 }
 func (UnimplementedAliPayServer) TradeRefund(context.Context, *RefundRequest) (*RefundReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TradeRefund not implemented")
+}
+func (UnimplementedAliPayServer) TradeFastPayRefundQuery(context.Context, *RefundQueryRequest) (*RefundQueryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TradeFastPayRefundQuery not implemented")
 }
 func (UnimplementedAliPayServer) mustEmbedUnimplementedAliPayServer() {}
 
@@ -188,6 +218,24 @@ func _AliPay_TradeCreate_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AliPay_TradeWapPay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AliPayServer).TradeWapPay(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AliPay_TradeWapPay_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AliPayServer).TradeWapPay(ctx, req.(*PayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AliPay_TradeQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PayQueryRequest)
 	if err := dec(in); err != nil {
@@ -224,6 +272,24 @@ func _AliPay_TradeRefund_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AliPay_TradeFastPayRefundQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefundQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AliPayServer).TradeFastPayRefundQuery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AliPay_TradeFastPayRefundQuery_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AliPayServer).TradeFastPayRefundQuery(ctx, req.(*RefundQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AliPay_ServiceDesc is the grpc.ServiceDesc for AliPay service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -244,12 +310,20 @@ var AliPay_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AliPay_TradeCreate_Handler,
 		},
 		{
+			MethodName: "TradeWapPay",
+			Handler:    _AliPay_TradeWapPay_Handler,
+		},
+		{
 			MethodName: "TradeQuery",
 			Handler:    _AliPay_TradeQuery_Handler,
 		},
 		{
 			MethodName: "TradeRefund",
 			Handler:    _AliPay_TradeRefund_Handler,
+		},
+		{
+			MethodName: "TradeFastPayRefundQuery",
+			Handler:    _AliPay_TradeFastPayRefundQuery_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -48,6 +48,7 @@ message RefundRequest {
   string RefundReason = 4;
   string OutRequestNo = 5;
   string AppId = 6;
+  string AppAuthToken = 7;
 }
 
 // 退款结果
@@ -55,10 +56,26 @@ message RefundReply {
   bytes RefundResult = 1;
 }
 
+// 退款查询请求
+message RefundQueryRequest {
+  string OutTradeNo = 1;
+  string TradeNo = 2;
+  string OutRequestNo = 3;
+  string AppId = 4;
+  string AppAuthToken = 5;
+}
+
+// 退款查询结果
+message RefundQueryReply {
+  bytes RefundQueryResult = 1;
+}
+
 service AliPay {
   rpc TradeAppPay (PayRequest) returns (PayReply) {}
   rpc TradePagePay (PayRequest) returns (PayReply) {}
   rpc TradeCreate (PayRequest) returns (PayReply) {}
+  rpc TradeWapPay (PayRequest) returns (PayReply) {}
   rpc TradeQuery (PayQueryRequest) returns (PayQueryReply) {}
   rpc TradeRefund (RefundRequest) returns (RefundReply) {}
+  rpc TradeFastPayRefundQuery (RefundQueryRequest) returns (RefundQueryReply) {}
 }
