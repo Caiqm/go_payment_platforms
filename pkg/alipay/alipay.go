@@ -135,6 +135,10 @@ func (c *Client) URLValues(param Param) (value url.Values, err error) {
 
 // 生成签名
 func (c *Client) sign(data []byte, SignType string) (signature string, err error) {
+	if len(data) == 0 {
+		err = ErrSignNotFound
+		return
+	}
 	var h hash.Hash
 	var hType crypto.Hash
 	switch SignType {
