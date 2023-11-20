@@ -171,3 +171,10 @@ func (e Error) IsSuccess() bool {
 func (e Error) IsFailure() bool {
 	return e.Code.IsFailure()
 }
+
+// MobileNumber 小程序获取会员手机号  https://opendocs.alipay.com/mini/api/getphonenumber
+type MobileNumber struct {
+	Code   Code   `json:"code"`
+	Msg    string `json:"msg"`
+	Mobile string `json:"mobile"`
+}

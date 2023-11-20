@@ -35,7 +35,20 @@ message MpUserInfoReply {
   string Gender = 7;
 }
 
+// 支付宝小程序手机号授权
+message MpPhoneNumberRequest {
+  bytes Response = 1;
+  string AuthToken = 2;
+  string AppId = 3;
+}
+
+// 支付宝小程序手机号授权
+message MpPhoneNumberReply {
+  string PhoneNumber = 1;
+}
+
 service AliMpLogin {
   rpc SystemOauthToken (MpLoginRequest) returns (MpLoginReply) {}
   rpc UserInfoShare (MpUserInfoRequest) returns (MpUserInfoReply) {}
+  rpc DecodePhoneNumber (MpPhoneNumberRequest) returns (MpPhoneNumberReply) {}
 }

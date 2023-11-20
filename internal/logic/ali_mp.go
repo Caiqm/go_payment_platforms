@@ -50,3 +50,21 @@ func (mpl *AliMpLogin) UserInfoShare(ctx context.Context, req *pb.MpUserInfoRequ
 	rpy.Gender = param.Gender
 	return
 }
+
+// 小程序获取会员手机号
+func (mpl *AliMpLogin) DecodePhoneNumber(ctx context.Context, req *pb.MpPhoneNumberRequest) (rpy *pb.MpPhoneNumberReply, err error) {
+	client := NewPayClient(req.AppId, false)
+	client.OnReceivedData(func(method string, data []byte) {
+		fmt.Println(method, string(data))
+	})
+	err = client.SetEncryptKey(req.AuthToken)
+	if err != nil {
+		return
+	}
+	result, err := client.DecodePhoneNumber(req.Response)
+	if err != nil {
+		return
+	}
+	rpy.PhoneNumber = result.Mobile
+	return
+}

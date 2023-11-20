@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AliMpLogin_SystemOauthToken_FullMethodName = "/aliyun_pb.AliMpLogin/SystemOauthToken"
-	AliMpLogin_UserInfoShare_FullMethodName    = "/aliyun_pb.AliMpLogin/UserInfoShare"
+	AliMpLogin_SystemOauthToken_FullMethodName  = "/aliyun_pb.AliMpLogin/SystemOauthToken"
+	AliMpLogin_UserInfoShare_FullMethodName     = "/aliyun_pb.AliMpLogin/UserInfoShare"
+	AliMpLogin_DecodePhoneNumber_FullMethodName = "/aliyun_pb.AliMpLogin/DecodePhoneNumber"
 )
 
 // AliMpLoginClient is the client API for AliMpLogin service.
@@ -29,6 +30,7 @@ const (
 type AliMpLoginClient interface {
 	SystemOauthToken(ctx context.Context, in *MpLoginRequest, opts ...grpc.CallOption) (*MpLoginReply, error)
 	UserInfoShare(ctx context.Context, in *MpUserInfoRequest, opts ...grpc.CallOption) (*MpUserInfoReply, error)
+	DecodePhoneNumber(ctx context.Context, in *MpPhoneNumberRequest, opts ...grpc.CallOption) (*MpPhoneNumberReply, error)
 }
 
 type aliMpLoginClient struct {
@@ -57,12 +59,22 @@ func (c *aliMpLoginClient) UserInfoShare(ctx context.Context, in *MpUserInfoRequ
 	return out, nil
 }
 
+func (c *aliMpLoginClient) DecodePhoneNumber(ctx context.Context, in *MpPhoneNumberRequest, opts ...grpc.CallOption) (*MpPhoneNumberReply, error) {
+	out := new(MpPhoneNumberReply)
+	err := c.cc.Invoke(ctx, AliMpLogin_DecodePhoneNumber_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AliMpLoginServer is the server API for AliMpLogin service.
 // All implementations must embed UnimplementedAliMpLoginServer
 // for forward compatibility
 type AliMpLoginServer interface {
 	SystemOauthToken(context.Context, *MpLoginRequest) (*MpLoginReply, error)
 	UserInfoShare(context.Context, *MpUserInfoRequest) (*MpUserInfoReply, error)
+	DecodePhoneNumber(context.Context, *MpPhoneNumberRequest) (*MpPhoneNumberReply, error)
 	mustEmbedUnimplementedAliMpLoginServer()
 }
 
@@ -75,6 +87,9 @@ func (UnimplementedAliMpLoginServer) SystemOauthToken(context.Context, *MpLoginR
 }
 func (UnimplementedAliMpLoginServer) UserInfoShare(context.Context, *MpUserInfoRequest) (*MpUserInfoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserInfoShare not implemented")
+}
+func (UnimplementedAliMpLoginServer) DecodePhoneNumber(context.Context, *MpPhoneNumberRequest) (*MpPhoneNumberReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DecodePhoneNumber not implemented")
 }
 func (UnimplementedAliMpLoginServer) mustEmbedUnimplementedAliMpLoginServer() {}
 
@@ -125,6 +140,24 @@ func _AliMpLogin_UserInfoShare_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AliMpLogin_DecodePhoneNumber_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MpPhoneNumberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AliMpLoginServer).DecodePhoneNumber(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AliMpLogin_DecodePhoneNumber_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AliMpLoginServer).DecodePhoneNumber(ctx, req.(*MpPhoneNumberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AliMpLogin_ServiceDesc is the grpc.ServiceDesc for AliMpLogin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -139,6 +172,10 @@ var AliMpLogin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserInfoShare",
 			Handler:    _AliMpLogin_UserInfoShare_Handler,
+		},
+		{
+			MethodName: "DecodePhoneNumber",
+			Handler:    _AliMpLogin_DecodePhoneNumber_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

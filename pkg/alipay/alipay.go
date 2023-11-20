@@ -78,6 +78,21 @@ func (c *Client) LoadAlipayCertPublicKey(s string) (err error) {
 	return
 }
 
+// SetEncryptKey 接口内容加密密钥 https://opendocs.alipay.com/common/02mse3
+func (c *Client) SetEncryptKey(key string) error {
+	if key == "" {
+		return nil
+	}
+	var data, err = base64.StdEncoding.DecodeString(key)
+	if err != nil {
+		return err
+	}
+	c.encryptIV = data[:16]
+	c.encryptType = "AES"
+	c.encryptKey = data
+	return nil
+}
+
 // 请求参数
 func (c *Client) URLValues(param Param) (value url.Values, err error) {
 	var values = url.Values{}
@@ -260,11 +275,8 @@ func (c *Client) decrypt(data []byte) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		var blockSize = block.BlockSize()
-		iv := c.encryptIV[:blockSize]
-		var dst = make([]byte, len(ciphertext))
-		var mode = cipher.NewCBCDecrypter(block, iv)
-		mode.CryptBlocks(dst, ciphertext)
+		var mode = cipher.NewCBCDecrypter(block, c.encryptIV)
+		mode.CryptBlocks(ciphertext, ciphertext)
 		// 去除填充
 		padding := int(ciphertext[len(ciphertext)-1])
 		plaintext = ciphertext[:len(ciphertext)-padding]
