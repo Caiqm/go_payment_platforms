@@ -8,6 +8,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/goccy/go-json"
 	"io"
 	"math/rand"
 	"net/http"
@@ -28,7 +29,7 @@ type Client struct {
 	mchId          string
 	mchSecret      string
 	host           string
-	SignType       string
+	signType       string
 	pemCert        []byte
 	keyCert        []byte
 	location       *time.Location
@@ -38,6 +39,7 @@ type Client struct {
 
 type OptionFunc func(c *Client)
 
+// 设置请求连接
 func WithApiHost(host string) OptionFunc {
 	return func(c *Client) {
 		if host != "" {
@@ -64,7 +66,7 @@ func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client)
 func (c *Client) SetMchInformation(id, secret string) error {
 	c.mchId = id
 	c.mchSecret = secret
-	c.SignType = "MD5"
+	c.signType = "MD5"
 	return nil
 }
 
@@ -108,17 +110,32 @@ func (c *Client) LoadTlsCertConfig() (tlsConfig *tls.Config, err error) {
 func (c *Client) URLValues(param Param) (value url.Values, err error) {
 	var values = url.Values{}
 	values.Add(kFieldAppId, c.appId)
-	var params = param.Params()
+	var params = c.structToMap(param)
 	for k, v := range params {
 		if v == "" {
 			continue
 		}
 		values.Add(k, v)
 	}
-	signature := c.sign(values)
-	// 添加签名
-	values.Add(kFieldSign, signature)
+	// 判断是否需要签名
+	if param.NeedSign() {
+		values.Add(kFieldMchId, c.mchId)
+		values.Add(kFieldNonceStr, c.createNonceStr())
+		values.Add(kFieldSignType, c.signType)
+		signature := c.sign(values)
+		// 添加签名
+		values.Add(kFieldSign, signature)
+	}
 	return
+}
+
+// 结构体转map
+func (c *Client) structToMap(stu interface{}) map[string]string {
+	// 结构体转map
+	m, _ := json.Marshal(&stu)
+	var parameters map[string]string
+	_ = json.Unmarshal(m, &parameters)
+	return parameters
 }
 
 // 生成签名
@@ -144,7 +161,7 @@ func (c *Client) formatBizQueryParaMap(parameters url.Values) string {
 	var signStr string
 	var dot string
 	for _, k := range strs {
-		if parameters[k][0] == "" {
+		if parameters[k][0] == "" || k == kFieldSign {
 			continue
 		}
 		signStr += dot + k + "=" + parameters[k][0]
@@ -176,8 +193,14 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 		if err != nil {
 			return err
 		}
-		xmlByte, _ := xml.Marshal(values)
-		req.Body = io.NopCloser(bytes.NewBuffer(xmlByte))
+		// 根据类型转换
+		var reqByte []byte
+		if strings.ToLower(param.ReturnType()) == "json" {
+			reqByte, _ = json.Marshal(values)
+		} else {
+			reqByte, _ = xml.Marshal(values)
+		}
+		req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
 	}
 	// 添加header头
 	req.Header.Add("Content-Type", kContentType)
@@ -191,4 +214,58 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 	if err != nil {
 		return err
 	}
+	err = c.decode(bodyBytes, param.ReturnType(), param.NeedVerify(), result)
+	return
+}
+
+// 解密返回数据
+func (c *Client) decode(data []byte, returnType string, needVerifySign bool, result interface{}) (err error) {
+	if strings.ToLower(returnType) == "json" || returnType == "" {
+		if err = json.Unmarshal(data, result); err != nil {
+			return
+		}
+		// 判断是否成功
+		var resultMap = result.(map[string]interface{})
+		if resultMap[kFieldErrCode].(string) != "0" {
+			var aErr *AppletError
+			if err = json.Unmarshal(data, &aErr); err != nil {
+				return
+			}
+			err = aErr
+			return
+		}
+	} else {
+		if err = xml.Unmarshal(data, result); err != nil {
+			return
+		}
+		// 判断是否成功
+		var resultMap = result.(map[string]interface{})
+		if resultMap[kFieldReturnCode].(ReturnCode) != ReturnCodeSuccess {
+			var pErr *PayError
+			if err = json.Unmarshal(data, &pErr); err != nil {
+				return
+			}
+			err = pErr
+			return
+		}
+		// 校验签名
+		if needVerifySign {
+			params := make(url.Values)
+			for key, value := range resultMap {
+				strValue := fmt.Sprintf("%v", value)
+				params.Add(key, strValue)
+			}
+			sign := c.sign(params)
+			compareSign := resultMap[kFieldSign].(string)
+			if strings.Compare(sign, compareSign) != 0 {
+				err = fmt.Errorf("验证签名失败，接口返回签名：%s，生成签名：%s", compareSign, sign)
+				return
+			}
+		}
+	}
+	return
+}
+
+func (c *Client) OnReceivedData(fn func(method string, data []byte)) {
+	c.onReceivedData = fn
 }
