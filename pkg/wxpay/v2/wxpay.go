@@ -62,6 +62,19 @@ func WithRefundHost() OptionFunc {
 	}
 }
 
+// 设置商户号信息
+func WithMchInformation(id, secret string) OptionFunc {
+	return func(c *Client) {
+		if id != "" {
+			c.mchId = id
+		}
+		if secret != "" {
+			c.mchSecret = secret
+		}
+		c.signType = "MD5"
+	}
+}
+
 func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client) {
 	nClient = &Client{}
 	nClient.appId = appId
@@ -74,14 +87,6 @@ func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client)
 		}
 	}
 	return
-}
-
-// 设置商户号信息
-func (c *Client) SetMchInformation(id, secret string) error {
-	c.mchId = id
-	c.mchSecret = secret
-	c.signType = "MD5"
-	return nil
 }
 
 // 加载证书文件
