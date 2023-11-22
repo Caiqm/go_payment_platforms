@@ -49,3 +49,31 @@ func (c *Client) TradeWap(param TradeWap) (result *TradeWapRsp, err error) {
 	err = c.doRequest("POST", param, &result)
 	return
 }
+
+// TradeOrderQuery 查询订单 https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_2
+// POST https://api.mch.weixin.qq.com/pay/orderquery
+func (c *Client) TradeOrderQuery(param TradeOrderQuery) (result *TradeOrderQueryRsp, err error) {
+	err = c.doRequest("POST", param, &result)
+	return
+}
+
+// TradeCloseOrder 关闭订单 https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_3
+// POST https://api.mch.weixin.qq.com/pay/closeorder
+func (c *Client) TradeCloseOrder(param TradeCloseOrder) (result *TradeCloseOrderRsp, err error) {
+	err = c.doRequest("POST", param, &result)
+	return
+}
+
+// TradeRefund 申请退款 https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_4
+// POST https://api.mch.weixin.qq.com/secapi/pay/refund
+func (c *Client) TradeRefund(param TradeRefund) (result *TradeRefundRsp, err error) {
+	err = c.doRequest("POST", param, &result)
+	return
+}
+
+// TradeRefundQuery 查询退款 https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_5
+// POST https://api.mch.weixin.qq.com/pay/refundquery
+func (c *Client) TradeRefundQuery(param TradeRefundQuery) (result *TradeRefundQueryRsp, err error) {
+	err = c.doRequest("POST", param, &result)
+	return
+}

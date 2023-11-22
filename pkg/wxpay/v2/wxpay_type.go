@@ -27,6 +27,9 @@ type Param interface {
 	// NeedVerify 是否对支付宝接口返回的数据进行签名验证， 为了安全建议都需要对签名进行验证，本方法存在是因为部分接口不支持签名验证。
 	NeedVerify() bool
 
+	// NeedTlsCert 是否需要证书，有的接口需要，比如：申请退款接口、提现到零钱用户接口
+	NeedTlsCert() bool
+
 	// ReturnType 返回类型，v2版本的接口都是xml的，为兼容小程序接口需要切换json
 	ReturnType() string
 }
@@ -40,6 +43,10 @@ func (aux AuxParam) NeedSign() bool {
 
 func (aux AuxParam) NeedVerify() bool {
 	return true
+}
+
+func (aux AuxParam) NeedTlsCert() bool {
+	return false
 }
 
 func (aux AuxParam) ReturnType() string {

@@ -48,6 +48,20 @@ func WithApiHost(host string) OptionFunc {
 	}
 }
 
+// 设置支付请求连接
+func WithPayHost() OptionFunc {
+	return func(c *Client) {
+		c.host = "https://api.mch.weixin.qq.com/pay/unifiedorder"
+	}
+}
+
+// 设置申请退款请求连接
+func WithRefundHost() OptionFunc {
+	return func(c *Client) {
+		c.host = "https://api.mch.weixin.qq.com/secapi/pay/refund"
+	}
+}
+
 func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client) {
 	nClient = &Client{}
 	nClient.appId = appId
@@ -202,6 +216,17 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 		}
 		req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
 	}
+	// 是否需要证书
+	if param.NeedTlsCert() {
+		tlsConfig, err1 := c.LoadTlsCertConfig()
+		if err1 != nil {
+			err = err1
+			return
+		}
+		c.client.Transport = &http.Transport{
+			TLSClientConfig: tlsConfig,
+		}
+	}
 	// 添加header头
 	req.Header.Add("Content-Type", kContentType)
 	// 发起请求数据
@@ -235,11 +260,12 @@ func (c *Client) decode(data []byte, returnType string, needVerifySign bool, res
 			return
 		}
 	} else {
-		if err = xml.Unmarshal(data, result); err != nil {
+		var tmpResult interface{}
+		if err = xml.Unmarshal(data, tmpResult); err != nil {
 			return
 		}
 		// 判断是否成功
-		var resultMap = result.(map[string]interface{})
+		var resultMap = tmpResult.(map[string]interface{})
 		if resultMap[kFieldReturnCode].(ReturnCode) != ReturnCodeSuccess {
 			var pErr *PayError
 			if err = json.Unmarshal(data, &pErr); err != nil {
@@ -255,17 +281,31 @@ func (c *Client) decode(data []byte, returnType string, needVerifySign bool, res
 				strValue := fmt.Sprintf("%v", value)
 				params.Add(key, strValue)
 			}
-			sign := c.sign(params)
-			compareSign := resultMap[kFieldSign].(string)
-			if strings.Compare(sign, compareSign) != 0 {
-				err = fmt.Errorf("验证签名失败，接口返回签名：%s，生成签名：%s", compareSign, sign)
+			// 验证签名
+			if err = c.VerifySign(params); err != nil {
 				return
 			}
+		}
+		// 参数绑定
+		if err = xml.Unmarshal(data, result); err != nil {
+			return
 		}
 	}
 	return
 }
 
+// 返回内容
 func (c *Client) OnReceivedData(fn func(method string, data []byte)) {
 	c.onReceivedData = fn
+}
+
+// 验证签名
+func (c *Client) VerifySign(values url.Values) (err error) {
+	verifier := values.Get(kFieldSign)
+	compareSign := c.sign(values)
+	if strings.Compare(verifier, compareSign) != 0 {
+		err = fmt.Errorf("验证签名失败，接口返回签名：%s，生成签名：%s", compareSign, verifier)
+		return
+	}
+	return
 }

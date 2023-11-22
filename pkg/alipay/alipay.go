@@ -256,7 +256,7 @@ func (c *Client) decode(data []byte, bizFieldName string, needVerifySign bool, r
 		}
 		fmt.Println(string(certBytes))
 		// 验证签名
-		if err = c.verify(bizBytes, signBytes); err != nil {
+		if err = c.Verify(bizBytes, signBytes); err != nil {
 			return err
 		}
 	}
@@ -292,7 +292,7 @@ func (c *Client) decrypt(data []byte) ([]byte, error) {
 }
 
 // 验证密钥
-func (c *Client) verify(signContent, sign []byte) (err error) {
+func (c *Client) Verify(signContent, sign []byte) (err error) {
 	// 步骤1，加载RSA的公钥
 	aliPublicKey := c.formatAlipayPublicKey(c.pubKey)
 	block, _ := pem.Decode([]byte(aliPublicKey))

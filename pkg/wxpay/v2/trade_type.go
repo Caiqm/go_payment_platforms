@@ -7,7 +7,7 @@ type Trade struct {
 	// 必须业务参数
 	Body           string `xml:"body" json:"body"`
 	OutTradeNo     string `xml:"out_trade_no" json:"out_trade_no"`
-	TotalFee       string `xml:"total_fee" json:"total_fee"`
+	TotalFee       int    `xml:"total_fee" json:"total_fee"`
 	SpbillCreateIp string `xml:"spbill_create_ip" json:"spbill_create_ip"`
 	TradeType      string `xml:"trade_type" json:"trade_type"`
 	// 选填，额外参数
@@ -146,4 +146,144 @@ type TradeWapRsp struct {
 	TradeType string `xml:"trade_type"`
 	PrepayId  string `xml:"prepay_id"`
 	MWebUrl   string `xml:"mweb_url"`
+}
+
+/* 查询订单 */
+
+// TradeOrderQuery 查询订单 https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_2
+type TradeOrderQuery struct {
+	AuxParam
+	OutTradeNo    string `xml:"out_trade_no,omitempty"`
+	TransactionId string `xml:"transaction_id,omitempty"`
+}
+
+func (t TradeOrderQuery) ReturnType() string {
+	return "xml"
+}
+
+// TradeOrderQueryRsp 查询订单响应参数
+type TradeOrderQueryRsp struct {
+	PayError
+	AppID          string `xml:"appid"`
+	MchID          string `xml:"mch_id"`
+	NonceStr       string `xml:"nonce_str"`
+	Sign           string `xml:"sign"`
+	DeviceInfo     string `xml:"device_info"`
+	OpenId         string `xml:"openid"`
+	IsSubscribe    string `xml:"is_subscribe"`
+	TradeType      string `xml:"trade_type"`
+	TradeState     string `xml:"trade_state"`
+	BankType       string `xml:"bank_type"`
+	TotalFee       int    `xml:"total_fee"`
+	CashFee        int    `xml:"cash_fee"`
+	TransactionId  string `xml:"transaction_id"`
+	OutTradeNo     string `xml:"out_trade_no"`
+	Attach         string `xml:"attach"`
+	TimeEnd        string `xml:"time_end"`
+	TradeStateDesc string `xml:"trade_state_desc"`
+}
+
+/* 关闭订单 */
+
+// TradeCloseOrder 关闭订单 https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_3
+type TradeCloseOrder struct {
+	AuxParam
+	OutTradeNo string `xml:"out_trade_no,omitempty"`
+}
+
+func (t TradeCloseOrder) ReturnType() string {
+	return "xml"
+}
+
+// TradeCloseOrderRsp 关闭订单响应参数
+type TradeCloseOrderRsp struct {
+	PayError
+	AppID     string `xml:"appid"`
+	MchID     string `xml:"mch_id"`
+	NonceStr  string `xml:"nonce_str"`
+	Sign      string `xml:"sign"`
+	ResultMsg string `xml:"result_msg"`
+}
+
+/* 申请退款 */
+
+// TradeRefund 申请退款 https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_4
+type TradeRefund struct {
+	AuxParam
+	OutTradeNo    string `xml:"out_trade_no,omitempty"`
+	TransactionId string `xml:"transaction_id,omitempty"`
+	OutRefundNo   string `xml:"out_refund_no"`
+	TotalFee      int    `xml:"total_fee"`
+	RefundFee     int    `xml:"refund_fee"`
+	RefundDesc    string `xml:"refund_desc"`
+	NotifyUrl     string `xml:"notify_url"`
+}
+
+func (t TradeRefund) NeedTlsCert() bool {
+	return true
+}
+
+func (t TradeRefund) ReturnType() string {
+	return "xml"
+}
+
+// TradeRefundRsp TradeRefund 申请退款响应参数
+type TradeRefundRsp struct {
+	PayError
+	AppID         string `xml:"appid"`
+	MchID         string `xml:"mch_id"`
+	NonceStr      string `xml:"nonce_str"`
+	Sign          string `xml:"sign"`
+	TransactionId string `xml:"transaction_id"`
+	OutTradeNo    string `xml:"out_trade_no"`
+	OutRefundNo   string `xml:"out_refund_no"`
+	RefundId      string `xml:"refund_id"`
+	RefundFee     int    `xml:"refund_fee"`
+	TotalFee      int    `xml:"total_fee"`
+	CashFee       int    `xml:"cash_fee"`
+}
+
+/* 查询退款 */
+
+// TradeRefundQuery 查询退款 https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_5
+type TradeRefundQuery struct {
+	AuxParam
+	TransactionId string `xml:"transaction_id"`
+	OutTradeNo    string `xml:"out_trade_no"`
+	OutRefundNo   string `xml:"out_refund_no"`
+	RefundId      string `xml:"refund_id"`
+	Offset        int    `xml:"offset,omitempty"`
+}
+
+func (t TradeRefundQuery) ReturnType() string {
+	return "xml"
+}
+
+// TradeRefundQueryRsp 查询退款响应参数
+type TradeRefundQueryRsp struct {
+	PayError
+	AppID                string `xml:"appid"`
+	MchID                string `xml:"mch_id"`
+	NonceStr             string `xml:"nonce_str"`
+	Sign                 string `xml:"sign"`
+	TotalRefundCount     int    `xml:"total_refund_count"`
+	TransactionId        string `xml:"transaction_id"`
+	OutTradeNo           string `xml:"out_trade_no"`
+	TotalFee             int    `xml:"total_fee"`
+	SettlementTotalFee   int    `xml:"settlement_total_fee"`
+	FeeType              string `xml:"fee_type"`
+	CashFee              int    `xml:"cash_fee"`
+	RefundCount          int    `xml:"refund_count"`
+	OutRefundNo1         string `xml:"out_refund_no_1"`
+	RefundId1            string `xml:"refund_id_1"`
+	RefundChannel1       string `xml:"refund_channel_1"`
+	RefundFee1           int    `xml:"refund_fee_1"`
+	RefundFee            int    `xml:"refund_fee"`
+	CouponRefundFee      int    `xml:"coupon_refund_fee"`
+	SettlementRefundFee1 int    `xml:"settlement_refund_fee_1"`
+	RefundStatus1        string `xml:"refund_status_1"`
+	RefundAccount1       string `xml:"refund_account_1"`
+	RefundRecvAccout1    string `xml:"refund_recv_accout_1"`
+	RefundSuccessTime1   string `xml:"refund_success_time_1"`
+	CashRefundFee        int    `xml:"cash_refund_fee"`
 }
