@@ -20,7 +20,9 @@ import (
 )
 
 var (
-	ErrWxPemKeyNotFound = errors.New("wxpay: wxpay pem or key cert not found")
+	ErrWxErrCodeNotFound    = errors.New("wxpay: errcode not found")
+	ErrWxReturnCodeNotFound = errors.New("wxpay: return_code not found")
+	ErrWxPemKeyNotFound     = errors.New("wxpay: wxpay pem or key cert not found")
 )
 
 type Client struct {
@@ -75,6 +77,7 @@ func WithMchInformation(id, secret string) OptionFunc {
 	}
 }
 
+// 初始化
 func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client) {
 	nClient = &Client{}
 	nClient.appId = appId
@@ -256,13 +259,15 @@ func (c *Client) decode(data []byte, returnType string, needVerifySign bool, res
 		}
 		// 判断是否成功
 		var resultMap = result.(map[string]interface{})
+		if _, has := resultMap[kFieldErrCode]; !has {
+			return ErrWxErrCodeNotFound
+		}
 		if resultMap[kFieldErrCode].(string) != "0" {
 			var aErr *AppletError
 			if err = json.Unmarshal(data, &aErr); err != nil {
 				return
 			}
-			err = aErr
-			return
+			return aErr
 		}
 	} else {
 		var tmpResult interface{}
@@ -271,13 +276,15 @@ func (c *Client) decode(data []byte, returnType string, needVerifySign bool, res
 		}
 		// 判断是否成功
 		var resultMap = tmpResult.(map[string]interface{})
+		if _, has := resultMap[kFieldReturnCode]; !has {
+			return ErrWxReturnCodeNotFound
+		}
 		if resultMap[kFieldReturnCode].(ReturnCode) != ReturnCodeSuccess {
 			var pErr *PayError
 			if err = json.Unmarshal(data, &pErr); err != nil {
 				return
 			}
-			err = pErr
-			return
+			return pErr
 		}
 		// 校验签名
 		if needVerifySign {

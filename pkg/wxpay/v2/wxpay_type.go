@@ -18,13 +18,10 @@ const (
 )
 
 type Param interface {
-	// Params 公共请求参数
-	//Params() map[string]string
-
 	// NeedSign 是否需要签名，有的接口不需要签名，比如：小程序登录与获取手机号接口
 	NeedSign() bool
 
-	// NeedVerify 是否对支付宝接口返回的数据进行签名验证， 为了安全建议都需要对签名进行验证，本方法存在是因为部分接口不支持签名验证。
+	// NeedVerify 是否对微信接口返回的数据进行签名验证， 为了安全建议都需要对签名进行验证，本方法存在是因为部分接口不支持签名验证。
 	NeedVerify() bool
 
 	// NeedTlsCert 是否需要证书，有的接口需要，比如：申请退款接口、提现到零钱用户接口
