@@ -227,7 +227,6 @@ func (c *Client) decode(data []byte, bizFieldName string, needVerifySign bool, r
 	// 判断是否有错误
 	if len(bizBytes) == 0 {
 		if len(errBytes) > 0 {
-			fmt.Println(string(errBytes))
 			var rErr *Error
 			if err = json.Unmarshal(errBytes, &rErr); err != nil {
 				return err

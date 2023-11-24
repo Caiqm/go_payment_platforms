@@ -273,7 +273,7 @@ func (c *Client) decode(data []byte, returnType string, needVerifySign bool, res
 		}
 	} else {
 		var tmpResult interface{}
-		if err = xml.Unmarshal(data, tmpResult); err != nil {
+		if err = xml.Unmarshal(data, &tmpResult); err != nil {
 			return
 		}
 		// 判断是否成功
