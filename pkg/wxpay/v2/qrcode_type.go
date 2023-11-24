@@ -58,5 +58,5 @@ type GetQRCode struct {
 
 type QrcodeRsp struct {
 	AppletError
-	Buffer []byte `json:"buffer"`
+	Buffer []byte `json:"buffer"` // 二维码二进制
 }
