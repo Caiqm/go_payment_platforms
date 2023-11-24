@@ -101,7 +101,7 @@ func (c *Client) LoadAppCertPemKeyFromFile(pemCertPath, keyCertPath string) (err
 	}
 	k, err := os.ReadFile(keyCertPath)
 	if err != nil {
-		err = fmt.Errorf("wxpay: read key cert fail, err = %s", err.Error())
+		err = fmt.Errorf("wxpay: read key cert fail, %s", err.Error())
 		return
 	}
 	c.pemCert = p

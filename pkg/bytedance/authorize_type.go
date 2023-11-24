@@ -12,6 +12,45 @@ func (a Applet) NeedSecret() bool {
 	return true
 }
 
+// ClientToken 获取应用授权调用凭证 https://developer.open-douyin.com/docs/resource/zh-CN/mini-app/develop/server/interface-request-credential/non-user-authorization/get-client_token
+type ClientToken struct {
+	AuxParam
+	ClientKey    string `json:"client_key"`    // 应用唯一标识，对应小程序id
+	ClientSecret string `json:"client_secret"` // 应用唯一标识对应的密钥，对应小程序的app secret，可以在开发者后台获取
+	GrantType    string `json:"grant_type"`    // 固定值“client_credential”
+}
+
+func (a ClientToken) NeedSign() bool {
+	return false
+}
+
+func (a ClientToken) NeedAppId() bool {
+	return false
+}
+
+func (a ClientToken) NeedSecret() bool {
+	return false
+}
+
+func (a ClientToken) ContentType() string {
+	return kContentTypeForm
+}
+
+// ClientTokenRsp 获取应用授权调用凭证响应参数
+type ClientTokenRsp struct {
+	Data struct {
+		AccessToken string `json:"access_token,omitempty"` // client_token 接口调用凭证
+		Description string `json:"description"`            // 错误码描述
+		ErrorCode   int    `json:"error_code"`             // 错误码
+		ExpiresIn   int    `json:"expires_in,omitempty"`   // client_token 接口调用凭证超时时间，单位（秒）
+	} `json:"data"` // client_token信息
+	Message string `json:"message,omitempty"` // 请求响应
+	Extra   struct {
+		Logid string `json:"logid"` // 日志记录ID
+		Now   int64  `json:"now"`   // 当前时间戳
+	} `json:"extra"`
+}
+
 // GetAccessToken 小程序的全局唯一调用凭据 https://developer.open-douyin.com/docs/resource/zh-CN/mini-app/develop/server/interface-request-credential/non-user-authorization/get-access-token
 type GetAccessToken struct {
 	Applet

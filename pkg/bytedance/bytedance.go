@@ -77,7 +77,10 @@ func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client)
 // 请求参数
 func (c *Client) URLValues(param Param) (value url.Values, err error) {
 	var values = url.Values{}
-	values.Add(kFieldAppId, c.appId)
+	// 是否需要APPID
+	if param.NeedAppId() {
+		values.Add(kFieldAppId, c.appId)
+	}
 	// 是否需要密钥
 	if param.NeedSecret() {
 		values.Add(kFieldSecret, c.secret)
@@ -133,11 +136,19 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 			return err
 		}
 		// 根据类型转换
-		reqByte, _ := json.Marshal(values)
-		req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
+		if param.ContentType() == kContentTypeJson {
+			reqByte, _ := json.Marshal(values)
+			req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
+		} else {
+			req.PostForm = values
+		}
+		// 添加token头
+		if param.NeedAccessToken() {
+			req.Header.Add("access-token", values.Get(kFieldAccessToken))
+		}
 	}
 	// 添加header头
-	req.Header.Add("Content-Type", kContentType)
+	req.Header.Add("Content-Type", param.ContentType())
 	// 发起请求数据
 	rsp, err := c.client.Do(req)
 	if err != nil {
