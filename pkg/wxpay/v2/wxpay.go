@@ -131,7 +131,9 @@ func (c *Client) LoadTlsCertConfig() (tlsConfig *tls.Config, err error) {
 // 请求参数
 func (c *Client) URLValues(param Param) (value url.Values, err error) {
 	var values = url.Values{}
-	values.Add(kFieldAppId, c.appId)
+	if param.NeedAppId() {
+		values.Add(kFieldAppId, c.appId)
+	}
 	var params = c.structToMap(param)
 	for k, v := range params {
 		if v == "" {
