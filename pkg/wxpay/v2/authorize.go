@@ -6,7 +6,7 @@ func (c *Client) GetAccessToken(param GetAccessToken) (result *GetAccessTokenRsp
 	if param.GrantType == "" {
 		param.GrantType = "client_credential"
 	}
-	err = c.doRequest("GET", nil, &result)
+	err = c.doRequest("GET", param, &result)
 	return
 }
 
@@ -16,7 +16,7 @@ func (c *Client) Code2Session(param Code2Session) (result *Code2SessionRsp, err 
 	if param.GrantType == "" {
 		param.GrantType = "authorization_code"
 	}
-	err = c.doRequest("GET", nil, &result)
+	err = c.doRequest("GET", param, &result)
 	return
 }
 

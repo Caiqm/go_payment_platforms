@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	ErrWxErrCodeNotFound    = errors.New("wxpay: errcode not found")
+	ErrWxNullParams         = errors.New("wxpay: param is null")
 	ErrWxReturnCodeNotFound = errors.New("wxpay: return_code not found")
 	ErrWxPemKeyNotFound     = errors.New("wxpay: wxpay pem or key cert not found")
 )
@@ -41,7 +41,7 @@ type Client struct {
 
 type OptionFunc func(c *Client)
 
-// 设置请求连接
+// 设置请求链接
 func WithApiHost(host string) OptionFunc {
 	return func(c *Client) {
 		if host != "" {
@@ -50,14 +50,21 @@ func WithApiHost(host string) OptionFunc {
 	}
 }
 
-// 设置支付请求连接
+// 设置小程序登录链接
+func WithJsCodeHost() OptionFunc {
+	return func(c *Client) {
+		c.host = "https://api.weixin.qq.com/sns/jscode2session"
+	}
+}
+
+// 设置支付请求链接
 func WithPayHost() OptionFunc {
 	return func(c *Client) {
 		c.host = "https://api.mch.weixin.qq.com/pay/unifiedorder"
 	}
 }
 
-// 设置申请退款请求连接
+// 设置申请退款请求链接
 func WithRefundHost() OptionFunc {
 	return func(c *Client) {
 		c.host = "https://api.mch.weixin.qq.com/secapi/pay/refund"
@@ -78,7 +85,10 @@ func WithMchInformation(id, secret string) OptionFunc {
 }
 
 // 初始化
-func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client) {
+func New(appId, secret string, opts ...OptionFunc) (nClient *Client, err error) {
+	if appId == "" || secret == "" {
+		return nil, ErrWxNullParams
+	}
 	nClient = &Client{}
 	nClient.appId = appId
 	nClient.secret = secret
@@ -90,6 +100,11 @@ func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client)
 		}
 	}
 	return
+}
+
+// 加载接口链接
+func (c *Client) LoadApiHost(opt OptionFunc) {
+	opt(c)
 }
 
 // 加载证书文件
@@ -155,7 +170,7 @@ func (c *Client) URLValues(param Param) (value url.Values, err error) {
 		// 添加签名
 		values.Add(kFieldSign, signature)
 	}
-	return
+	return values, nil
 }
 
 // 结构体转map
@@ -224,15 +239,14 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 		}
 		if method == http.MethodPost {
 			// 根据类型转换
-			var reqByte []byte
 			if strings.ToLower(param.ReturnType()) == "json" {
-				reqByte, _ = json.Marshal(values)
+				req.PostForm = values
 			} else {
-				reqByte, _ = xml.Marshal(values)
+				reqByte, _ := xml.Marshal(values)
+				req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
 			}
-			req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
 		} else if method == http.MethodGet {
-			req.Host = c.host + "?" + values.Encode()
+			req.URL, _ = url.Parse(c.host + "?" + values.Encode())
 		}
 	}
 	// 是否需要证书
@@ -258,6 +272,10 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 	if err != nil {
 		return err
 	}
+	// 返回结果
+	if c.onReceivedData != nil {
+		c.onReceivedData("response", bodyBytes)
+	}
 	err = c.decode(bodyBytes, param.ReturnType(), param.NeedVerify(), result)
 	return
 }
@@ -282,12 +300,12 @@ func (c *Client) decode(data []byte, returnType string, needVerifySign bool, res
 			return
 		}
 	} else {
-		var tmpResult interface{}
+		tmpResult := make(map[string]interface{})
 		if err = xml.Unmarshal(data, &tmpResult); err != nil {
 			return
 		}
 		// 判断是否成功
-		var resultMap = tmpResult.(map[string]interface{})
+		var resultMap = tmpResult
 		if _, has := resultMap[kFieldReturnCode]; !has {
 			return ErrWxReturnCodeNotFound
 		}

@@ -59,6 +59,10 @@ type GetPhoneNumber struct {
 	Openid string `json:"openid,omitempty"` // 用户OPENID
 }
 
+func (pn GetPhoneNumber) NeedAppId() bool {
+	return false
+}
+
 func (pn GetPhoneNumber) NeedSign() bool {
 	return false
 }

@@ -3,13 +3,13 @@ package v2
 // 请求参数
 type Trade struct {
 	AuxParam
-	NotifyUrl string `xml:"notify_url" json:"notify_url"` // 接收微信支付异步通知回调地址，通知url必须为直接可访问的url，不能携带参数。公网域名必须为https，如果是走专线接入，使用专线NAT IP或者私有回调域名可使用http。
-	// 必须业务参数
-	Body           string `xml:"body" json:"body"`                         // 商品描述交易字段格式根据不同的应用场景按照以下格式： APP——需传入应用市场上的APP名字-实际商品名称，天天爱消除-游戏充值。
-	OutTradeNo     string `xml:"out_trade_no" json:"out_trade_no"`         // 商户系统内部订单号，要求32个字符内（最少6个字符），只能是数字、大小写字母_-|*且在同一个商户号下唯一。
-	TotalFee       int    `xml:"total_fee" json:"total_fee"`               // 订单总金额，单位为分
-	SpbillCreateIp string `xml:"spbill_create_ip" json:"spbill_create_ip"` // 支持IPV4和IPV6两种格式的IP地址。调用微信支付API的机器IP
-	TradeType      string `xml:"trade_type" json:"trade_type"`             // 支付类型
+	NotifyUrl string `xml:"notify_url"` // 接收微信支付异步通知回调地址，通知url必须为直接可访问的url，不能携带参数。公网域名必须为https，如果是走专线接入，使用专线NAT IP或者私有回调域名可使用http。
+	// 必填，主要参数
+	Body           string `xml:"body"`             // 商品描述交易字段格式根据不同的应用场景按照以下格式： APP——需传入应用市场上的APP名字-实际商品名称，天天爱消除-游戏充值。
+	OutTradeNo     string `xml:"out_trade_no"`     // 商户系统内部订单号，要求32个字符内（最少6个字符），只能是数字、大小写字母_-|*且在同一个商户号下唯一。
+	TotalFee       int    `xml:"total_fee"`        // 订单总金额，单位为分
+	SpbillCreateIp string `xml:"spbill_create_ip"` // 支持IPV4和IPV6两种格式的IP地址。调用微信支付API的机器IP
+	TradeType      string `xml:"trade_type"`       // 支付类型
 	// 选填，额外参数
 	Attach        string `xml:"attach,omitempty"`         // 附加数据，在查询API和支付通知中原样返回，该字段主要用于商户携带订单的自定义数据
 	DeviceInfo    string `xml:"device_info,omitempty"`    // 自定义参数，可以为终端设备号(门店号或收银设备ID)，PC网页或公众号内支付可以传"WEB"
