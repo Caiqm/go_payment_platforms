@@ -1,31 +1,21 @@
 package v2
 
-import (
-	"fmt"
-	"net/url"
-)
-
 // GetAccessToken 接口调用凭据 https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/mp-access-token/getAccessToken.html
 // GET https://api.weixin.qq.com/cgi-bin/token
-func (c *Client) GetAccessToken() (result *GetAccessTokenRsp, err error) {
-	var u url.Values
-	u.Add("appid", c.appId)
-	u.Add("secret", c.secret)
-	u.Add("grant_type", "client_credential")
-	c.host = fmt.Sprintf("%s?%s", c.host, u.Encode())
+func (c *Client) GetAccessToken(param GetAccessToken) (result *GetAccessTokenRsp, err error) {
+	if param.GrantType == "" {
+		param.GrantType = "client_credential"
+	}
 	err = c.doRequest("GET", nil, &result)
 	return
 }
 
 // Code2Session 小程序登录 https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/user-login/code2Session.html
 // GET https://api.weixin.qq.com/sns/jscode2session
-func (c *Client) Code2Session(jsCode string) (result *Code2SessionRsp, err error) {
-	var u url.Values
-	u.Add("appid", c.appId)
-	u.Add("secret", c.secret)
-	u.Add("grant_type", "authorization_code")
-	u.Add("js_code", jsCode)
-	c.host = fmt.Sprintf("%s?%s", c.host, u.Encode())
+func (c *Client) Code2Session(param Code2Session) (result *Code2SessionRsp, err error) {
+	if param.GrantType == "" {
+		param.GrantType = "authorization_code"
+	}
 	err = c.doRequest("GET", nil, &result)
 	return
 }

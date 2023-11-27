@@ -9,6 +9,7 @@ const (
 
 const (
 	kFieldAppId      = "appid"
+	kFieldSecret     = "secret"
 	kFieldMchId      = "mch_id"
 	kFieldNonceStr   = "nonce_str"
 	kFieldSign       = "sign"
@@ -20,6 +21,9 @@ const (
 type Param interface {
 	// NeedAppId 是否需要APPID，有的借口不需要APPID，比如：小程序二维码接口
 	NeedAppId() bool
+
+	// NeedSecret 是否需要密钥，有的借口不需要密钥，比如：支付接口，小程序获取手机号接口
+	NeedSecret() bool
 
 	// NeedSign 是否需要签名，有的接口不需要签名，比如：小程序登录与获取手机号接口
 	NeedSign() bool
@@ -39,6 +43,10 @@ type AuxParam struct {
 
 func (aux AuxParam) NeedAppId() bool {
 	return true
+}
+
+func (aux AuxParam) NeedSecret() bool {
+	return false
 }
 
 func (aux AuxParam) NeedSign() bool {

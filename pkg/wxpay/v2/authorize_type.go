@@ -1,5 +1,24 @@
 package v2
 
+// Code2Session 小程序登录 https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/user-login/code2Session.html
+type Code2Session struct {
+	AuxParam
+	GrantType string `json:"grant_type"`
+	JsCode    string `json:"js_code"`
+}
+
+func (a Code2Session) NeedSecret() bool {
+	return true
+}
+
+func (a Code2Session) NeedSign() bool {
+	return false
+}
+
+func (a Code2Session) NeedVerify() bool {
+	return false
+}
+
 // Code2SessionRsp 小程序登录返回参数 https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/user-login/code2Session.html
 type Code2SessionRsp struct {
 	AppletError
@@ -8,7 +27,25 @@ type Code2SessionRsp struct {
 	UnionId    string `json:"unionid"`     // 用户在开放平台的唯一标识符，若当前小程序已绑定到微信开放平台账号下会返回
 }
 
-// GetAccessTokenRsp 接口调用凭据 https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/mp-access-token/getAccessToken.html
+// GetAccessToken 接口调用凭据 https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/mp-access-token/getAccessToken.html
+type GetAccessToken struct {
+	AuxParam
+	GrantType string `json:"grant_type"`
+}
+
+func (a GetAccessToken) NeedSecret() bool {
+	return true
+}
+
+func (a GetAccessToken) NeedSign() bool {
+	return false
+}
+
+func (a GetAccessToken) NeedVerify() bool {
+	return false
+}
+
+// GetAccessTokenRsp 接口调用凭据响应参数
 type GetAccessTokenRsp struct {
 	AppletError
 	AccessToken string `json:"access_token"` // 获取到的凭证

@@ -131,8 +131,13 @@ func (c *Client) LoadTlsCertConfig() (tlsConfig *tls.Config, err error) {
 // 请求参数
 func (c *Client) URLValues(param Param) (value url.Values, err error) {
 	var values = url.Values{}
+	// 是否需要APPID
 	if param.NeedAppId() {
 		values.Add(kFieldAppId, c.appId)
+	}
+	// 是否需要密钥
+	if param.NeedSecret() {
+		values.Add(kFieldSecret, c.secret)
 	}
 	var params = c.structToMap(param)
 	for k, v := range params {
@@ -217,14 +222,18 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 		if err != nil {
 			return err
 		}
-		// 根据类型转换
-		var reqByte []byte
-		if strings.ToLower(param.ReturnType()) == "json" {
-			reqByte, _ = json.Marshal(values)
-		} else {
-			reqByte, _ = xml.Marshal(values)
+		if method == http.MethodPost {
+			// 根据类型转换
+			var reqByte []byte
+			if strings.ToLower(param.ReturnType()) == "json" {
+				reqByte, _ = json.Marshal(values)
+			} else {
+				reqByte, _ = xml.Marshal(values)
+			}
+			req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
+		} else if method == http.MethodGet {
+			req.Host = c.host + "?" + values.Encode()
 		}
-		req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
 	}
 	// 是否需要证书
 	if param.NeedTlsCert() {
@@ -256,20 +265,21 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 // 解密返回数据
 func (c *Client) decode(data []byte, returnType string, needVerifySign bool, result interface{}) (err error) {
 	if strings.ToLower(returnType) == "json" || returnType == "" {
-		if err = json.Unmarshal(data, result); err != nil {
+		var raw = make(map[string]json.RawMessage)
+		if err = json.Unmarshal(data, &raw); err != nil {
 			return
 		}
 		// 判断是否成功
-		var resultMap = result.(map[string]interface{})
-		if _, has := resultMap[kFieldErrCode]; !has {
-			return ErrWxErrCodeNotFound
-		}
-		if resultMap[kFieldErrCode].(string) != "0" {
+		var errNBytes = raw[kFieldErrCode]
+		if len(errNBytes) > 0 {
 			var aErr *AppletError
 			if err = json.Unmarshal(data, &aErr); err != nil {
 				return
 			}
 			return aErr
+		}
+		if err = json.Unmarshal(data, result); err != nil {
+			return
 		}
 	} else {
 		var tmpResult interface{}
