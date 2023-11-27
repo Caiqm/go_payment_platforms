@@ -165,20 +165,21 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 
 // 解密返回数据
 func (c *Client) decode(data []byte, result interface{}) (err error) {
-	if err = json.Unmarshal(data, result); err != nil {
+	var raw = make(map[string]json.RawMessage)
+	if err = json.Unmarshal(data, &raw); err != nil {
 		return
 	}
 	// 判断是否成功
-	var resultMap = result.(map[string]interface{})
-	if _, has := resultMap[kFieldErrNo]; !has {
-		return ErrByteDanceErrNoNotFound
-	}
-	if resultMap[kFieldErrNo].(string) != "0" {
+	var errNBytes = raw[kFieldErrNo]
+	if len(errNBytes) > 0 {
 		var rErr *Error
-		if err = json.Unmarshal(data, &rErr); err != nil {
+		if err = json.Unmarshal(errNBytes, &rErr); err != nil {
 			return
 		}
 		return rErr
+	}
+	if err = json.Unmarshal(data, result); err != nil {
+		return
 	}
 	return
 }

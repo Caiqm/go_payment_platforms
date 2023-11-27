@@ -22,7 +22,7 @@ import (
 type Client struct {
 	appId          string
 	secret         string
-	sppKey         string
+	appKey         string
 	dealId         string
 	secretKey      string
 	publicKey      string
@@ -41,6 +41,27 @@ func WithApiHost(host string) OptionFunc {
 	return func(c *Client) {
 		if host != "" {
 			c.host = host
+		}
+	}
+}
+
+// 设置加密方式
+func WithSignType(signType string) OptionFunc {
+	return func(c *Client) {
+		if signType != "" {
+			c.signType = signType
+		}
+	}
+}
+
+// 设置支付参数
+func WithPayParams(appKey, dealId string) OptionFunc {
+	return func(c *Client) {
+		if appKey != "" {
+			c.appKey = appKey
+		}
+		if dealId != "" {
+			c.dealId = dealId
 		}
 	}
 }
@@ -155,7 +176,11 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 		if err != nil {
 			return err
 		}
-		req.Body = io.NopCloser(strings.NewReader(values.Encode()))
+		if method == http.MethodPost {
+			req.PostForm = values
+		} else if method == http.MethodGet {
+			req.Host = c.host + "?" + values.Encode()
+		}
 	}
 	// 添加header头
 	req.Header.Add("Content-Type", kContentType)
@@ -210,10 +235,10 @@ func (c *Client) decode(data []byte, result interface{}) (err error) {
 }
 
 // 验证签名
-func (c *Client) VerifySign(publicKey, signContent, sign string) (checkRes bool, err error) {
+func (c *Client) VerifySign(signContent, sign string) (checkRes bool, err error) {
 	// 步骤1，加载RSA的公钥
-	aliPublicKey := c.formatAlipayPublicKey(c.publicKey)
-	block, _ := pem.Decode([]byte(aliPublicKey))
+	publicKey := c.formatPublicKey(c.publicKey)
+	block, _ := pem.Decode([]byte(publicKey))
 	// keyByts, _ := base64.StdEncoding.DecodeString(publicKey)
 	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	checkRes = false
@@ -238,7 +263,7 @@ func (c *Client) VerifySign(publicKey, signContent, sign string) (checkRes bool,
 }
 
 // 格式化普通支付宝公钥
-func (c *Client) formatAlipayPublicKey(publicKey string) (pKey string) {
+func (c *Client) formatPublicKey(publicKey string) (pKey string) {
 	var buffer strings.Builder
 	buffer.WriteString("-----BEGIN PUBLIC KEY-----\n")
 	rawLen := 64
