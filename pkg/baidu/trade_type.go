@@ -7,7 +7,7 @@ type TradePolymerPayment struct {
 	NotifyUrl       string `json:"notifyUrl"`               // 通知开发者支付状态的回调地址，必须是合法的 URL ，与开发者平台填写的支付回调地址作用一致，未填写的以平台回调地址为准
 	DealTitle       string `json:"dealTitle"`               // 订单的名称
 	SignFieldsRange string `json:"signFieldsRange"`         // 用于区分验签字段范围，signFieldsRange 的值：0：原验签字段 appKey+dealId+tpOrderId；1：包含 totalAmount 的验签，验签字段包括appKey+dealId+tpOrderId+totalAmount。固定值为 1 。
-	BizInfo         string `json:"bizInfo"`                 // 订单详细信息，需要是一个可解析为 JSON Object 的字符串
+	BizInfo         string `json:"bizInfo,omitempty"`       // 订单详细信息，需要是一个可解析为 JSON Object 的字符串
 	PayResultUrl    string `json:"payResultUrl,omitempty"`  // 当前页面 path。Web 态小程序支付成功后跳回的页面路径，例如：'/pages/payResult/payResult'
 	InlinePaySign   string `json:"inlinePaySign,omitempty"` // 内嵌支付组件返回的支付信息加密 key，与 内嵌支付组件配套使用，此值不传或者传空时默认调起支付面板
 	PromotionTag    string `json:"promotionTag,omitempty"`  // 平台营销信息，此处传可使用平台券的 spuid，支持通过英文逗号分割传入多个 spuid 值，仅与百度合作平台类目券的开发者需要填写

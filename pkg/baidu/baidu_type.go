@@ -71,5 +71,12 @@ type ErrorCode struct {
 }
 
 func (e ErrorCode) Error() string {
-	return fmt.Sprintf("%d - %s, %d - %s", e.Errno, e.Errmsg, e.ErrorCode, e.ErrorMsg)
+	var errMsg string
+	if e.ErrorCode > 0 {
+		errMsg = fmt.Sprintf("%d - %s", e.ErrorCode, e.ErrorMsg)
+	}
+	if e.Errno > 0 {
+		errMsg = fmt.Sprintf("%s，%d - %s", errMsg, e.ErrorCode, e.ErrorMsg)
+	}
+	return errMsg
 }

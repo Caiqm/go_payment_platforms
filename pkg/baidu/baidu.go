@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"github.com/goccy/go-json"
 	"hash"
@@ -67,19 +68,27 @@ func WithPayParams(appKey, dealId string) OptionFunc {
 }
 
 // 初始化
-func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client) {
+func New(appId, secret string, opts ...OptionFunc) (nClient *Client, err error) {
+	if appId == "" || secret == "" {
+		return nil, errors.New("bad params")
+	}
 	nClient = &Client{}
 	nClient.appId = appId
 	nClient.secret = secret
 	nClient.signType = "RSA"
 	nClient.client = http.DefaultClient
 	nClient.location = time.Local
+	nClient.LoadOptionFunc(opts...)
+	return
+}
+
+// 加载接口链接
+func (c *Client) LoadOptionFunc(opts ...OptionFunc) {
 	for _, opt := range opts {
 		if opt != nil {
-			opt(nClient)
+			opt(c)
 		}
 	}
-	return
 }
 
 // 结构体转map
@@ -119,7 +128,7 @@ func (c *Client) URLValues(param Param) (value url.Values, err error) {
 		// 添加签名
 		values.Add(kFieldSign, signature)
 	}
-	return
+	return values, nil
 }
 
 // 生成签名
@@ -179,7 +188,7 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 		if method == http.MethodPost {
 			req.PostForm = values
 		} else if method == http.MethodGet {
-			req.Host = c.host + "?" + values.Encode()
+			req.URL, _ = url.Parse(c.host + "?" + values.Encode())
 		}
 	}
 	// 添加header头
@@ -194,12 +203,16 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 	if err != nil {
 		return err
 	}
-	err = c.decode(bodyBytes, result)
+	err = c.decode(bodyBytes, method, result)
 	return
 }
 
 // 解密返回数据
-func (c *Client) decode(data []byte, result interface{}) (err error) {
+func (c *Client) decode(data []byte, method string, result interface{}) (err error) {
+	// 返回结果
+	if c.onReceivedData != nil {
+		c.onReceivedData(method, data)
+	}
 	var raw = make(map[string]json.RawMessage)
 	if err = json.Unmarshal(data, &raw); err != nil {
 		return
@@ -208,21 +221,21 @@ func (c *Client) decode(data []byte, result interface{}) (err error) {
 	var errCBytes = raw[kFieldErrCode]
 	var errNBytes = raw[kFieldErrNo]
 	if len(errTBytes) > 0 {
-		var tErr *Err
-		if err = json.Unmarshal(errTBytes, &tErr); err != nil {
+		var tErr Err
+		if err = json.Unmarshal(data, &tErr); err != nil {
 			return err
 		}
 		return tErr
 	}
 	if len(errCBytes) > 0 {
-		var cErr *ErrorCode
-		if err = json.Unmarshal(errTBytes, &cErr); err != nil {
+		var cErr ErrorCode
+		if err = json.Unmarshal(data, &cErr); err != nil {
 			return err
 		}
 		return cErr
-	} else if len(errCBytes) <= 0 && len(errNBytes) > 0 {
-		var nErr *ErrorNo
-		if err = json.Unmarshal(errTBytes, &nErr); err != nil {
+	} else if len(errCBytes) == 0 && len(errNBytes) > 0 {
+		var nErr ErrorNo
+		if err = json.Unmarshal(data, &nErr); err != nil {
 			return err
 		}
 		return nErr
@@ -288,4 +301,9 @@ func (c *Client) formatPublicKey(publicKey string) (pKey string) {
 	buffer.WriteString("-----END PUBLIC KEY-----\n")
 	pKey = buffer.String()
 	return
+}
+
+// 返回内容
+func (c *Client) OnReceivedData(fn func(method string, data []byte)) {
+	c.onReceivedData = fn
 }

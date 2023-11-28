@@ -33,8 +33,12 @@ func (a SessionKey) NeedSign() bool {
 	return false
 }
 
+func (a SessionKey) NeedAppId() bool {
+	return false
+}
+
 func (a SessionKey) NeedSecret() bool {
-	return true
+	return false
 }
 
 // SessionKeyRsp 用户登陆凭证响应参数
