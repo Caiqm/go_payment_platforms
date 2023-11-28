@@ -7,6 +7,7 @@ type Trade struct {
 	AppAuthToken string `json:"-"` // 可选
 
 	// biz content，这四个参数是必须的
+	Body        string `json:"body,omitempty"`
 	Subject     string `json:"subject"`      // 订单标题
 	OutTradeNo  string `json:"out_trade_no"` // 商户订单号，64个字符以内、可包含字母、数字、下划线；需保证在商户端不重复
 	TotalAmount string `json:"total_amount"` // 订单总金额，单位为元，精确到小数点后两位，取值范围[0.01,100000000]

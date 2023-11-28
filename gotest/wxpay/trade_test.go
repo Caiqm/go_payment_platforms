@@ -89,6 +89,22 @@ func TestClient_TradeOrderQuery(t *testing.T) {
 	t.Log(r)
 }
 
+// 申请退款
+func TestClient_TradeRefund(t *testing.T) {
+	t.Log("========== TradeRefund ==========")
+	client.LoadOptionFunc(wxpay.WithApiHost("https://api.mch.weixin.qq.com/secapi/pay/refund"), wxpay.WithMchInformation(mchId, mchSecret))
+	var p wxpay.TradeRefund
+	p.OutTradeNo = "TEST2023112717521212345678"
+	p.OutRefundNo = "TEST2023112717521212345678"
+	p.TotalFee = "1"
+	p.RefundFee = "1"
+	r, err := client.TradeRefund(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(r)
+}
+
 // 查询退款
 func TestClient_TradeRefundQuery(t *testing.T) {
 	t.Log("========== TradeRefundQuery ==========")

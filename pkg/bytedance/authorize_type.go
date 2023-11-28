@@ -40,8 +40,8 @@ func (a ClientToken) ContentType() string {
 type ClientTokenRsp struct {
 	Data struct {
 		AccessToken string `json:"access_token,omitempty"` // client_token 接口调用凭证
-		Description string `json:"description"`            // 错误码描述
-		ErrorCode   int    `json:"error_code"`             // 错误码
+		Description string `json:"description,omitempty"`  // 错误码描述
+		ErrorCode   int    `json:"error_code,omitempty"`   // 错误码
 		ExpiresIn   int    `json:"expires_in,omitempty"`   // client_token 接口调用凭证超时时间，单位（秒）
 	} `json:"data"` // client_token信息
 	Message string `json:"message,omitempty"` // 请求响应
@@ -69,8 +69,8 @@ type GetAccessTokenRsp struct {
 // Code2Session 小程序登录 https://developer.open-douyin.com/docs/resource/zh-CN/mini-app/develop/server/log-in/code-2-session
 type Code2Session struct {
 	Applet
-	AnonymousCode string `json:"anonymous_code"` // login 接口返回的匿名登录凭证
-	Code          string `json:"code"`           // login 接口返回的登录凭证
+	AnonymousCode string `json:"anonymous_code,omitempty"` // login 接口返回的匿名登录凭证
+	Code          string `json:"code,omitempty"`           // login 接口返回的登录凭证
 }
 
 // Code2SessionRsp 小程序登录响应参数

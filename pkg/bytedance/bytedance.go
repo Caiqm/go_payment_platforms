@@ -16,7 +16,8 @@ import (
 )
 
 var (
-	ErrByteDanceErrNoNotFound = errors.New("bytedance: err_no not found")
+	ErrBdNullParams     = errors.New("bytedance: bad params")
+	ErrBdDataNullParams = errors.New("bytedance: bad data")
 )
 
 type Client struct {
@@ -60,30 +61,41 @@ func WithToken(token string) OptionFunc {
 }
 
 // 初始化
-func (c *Client) New(appId, secret string, opts ...OptionFunc) (nClient *Client) {
+func New(appId, secret string, opts ...OptionFunc) (nClient *Client, err error) {
+	if appId == "" || secret == "" {
+		return nil, ErrBdNullParams
+	}
 	nClient = &Client{}
 	nClient.appId = appId
 	nClient.secret = secret
 	nClient.client = http.DefaultClient
 	nClient.location = time.Local
-	for _, opt := range opts {
-		if opt != nil {
-			opt(nClient)
-		}
-	}
+	nClient.LoadOptionFunc(opts...)
 	return
 }
 
+// 加载配置
+func (c *Client) LoadOptionFunc(opts ...OptionFunc) {
+	for _, opt := range opts {
+		if opt != nil {
+			opt(c)
+		}
+	}
+}
+
 // 请求参数
-func (c *Client) URLValues(param Param) (value url.Values, err error) {
+func (c *Client) URLValues(param Param) (value url.Values, valueMaps map[string]interface{}, err error) {
 	var values = url.Values{}
+	var valueMap = make(map[string]interface{})
 	// 是否需要APPID
 	if param.NeedAppId() {
 		values.Add(kFieldAppId, c.appId)
+		valueMap[kFieldAppId] = c.appId
 	}
 	// 是否需要密钥
 	if param.NeedSecret() {
 		values.Add(kFieldSecret, c.secret)
+		valueMap[kFieldSecret] = c.secret
 	}
 	// 结构体转MAP
 	var params = c.structToMap(param)
@@ -91,25 +103,34 @@ func (c *Client) URLValues(param Param) (value url.Values, err error) {
 		if v == "" {
 			continue
 		}
-		values.Add(k, v.(string))
+		valueMap[k] = v
+		switch v.(type) {
+		case string:
+			values.Add(k, v.(string))
+		case float64:
+			values.Add(k, fmt.Sprintf("%.f", v.(float64)))
+		case int:
+			values.Add(k, fmt.Sprintf("%d", v.(int)))
+		}
 	}
 	// 判断是否需要签名
 	if param.NeedSign() {
-		signature := c.sign(values)
+		signature := c.sign(valueMap)
 		// 添加签名
 		values.Add(kFieldSign, signature)
+		valueMap[kFieldSign] = signature
 	}
-	return
+	return values, valueMap, nil
 }
 
 // 生成签名
-func (c *Client) sign(paramsMap url.Values) string {
+func (c *Client) sign(paramsMap map[string]interface{}) string {
 	var paramsArr []string
 	for k, v := range paramsMap {
-		if k == "other_settle_params" || k == "app_id" || k == "thirdparty_id" || k == "sign" {
+		if k == "other_settle_params" {
 			continue
 		}
-		value := strings.TrimSpace(fmt.Sprintf("%v", v[0]))
+		value := strings.TrimSpace(fmt.Sprintf("%v", v))
 		if strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"") && len(value) > 1 {
 			value = value[1 : len(value)-1]
 		}
@@ -117,7 +138,12 @@ func (c *Client) sign(paramsMap url.Values) string {
 		if value == "" || value == "null" {
 			continue
 		}
-		paramsArr = append(paramsArr, value)
+		switch k {
+		// app_id, thirdparty_id, sign 字段用于标识身份，不参与签名
+		case "app_id", "thirdparty_id", "sign":
+		default:
+			paramsArr = append(paramsArr, value)
+		}
 	}
 	paramsArr = append(paramsArr, c.salt)
 	sort.Strings(paramsArr)
@@ -131,13 +157,17 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 	// 判断参数是否为空
 	if param != nil {
 		var values url.Values
-		values, err = c.URLValues(param)
+		var mapValues map[string]interface{}
+		values, mapValues, err = c.URLValues(param)
 		if err != nil {
-			return err
+			return
 		}
 		// 根据类型转换
 		if param.ContentType() == kContentTypeJson {
-			reqByte, _ := json.Marshal(values)
+			var reqByte []byte
+			if reqByte, err = json.Marshal(mapValues); err != nil {
+				return
+			}
 			req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
 		} else {
 			req.PostForm = values
@@ -165,15 +195,19 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 
 // 解密返回数据
 func (c *Client) decode(data []byte, result interface{}) (err error) {
+	// 返回结果
+	if c.onReceivedData != nil {
+		c.onReceivedData("response", data)
+	}
 	var raw = make(map[string]json.RawMessage)
 	if err = json.Unmarshal(data, &raw); err != nil {
 		return
 	}
 	// 判断是否成功
 	var errNBytes = raw[kFieldErrNo]
-	if len(errNBytes) > 0 {
-		var rErr *Error
-		if err = json.Unmarshal(errNBytes, &rErr); err != nil {
+	if len(errNBytes) > 0 && string(errNBytes) != "0" {
+		var rErr Error
+		if err = json.Unmarshal(data, &rErr); err != nil {
 			return
 		}
 		return rErr

@@ -1,7 +1,6 @@
 package wxpay
 
 import (
-	"fmt"
 	"github.com/Caiqm/go_payment_platforms/pkg/wxpay/v2"
 	"log"
 	"testing"
@@ -16,7 +15,7 @@ func init() {
 		log.Fatalln(err)
 	}
 	client.OnReceivedData(func(method string, data []byte) {
-		fmt.Println(method, string(data))
+		log.Println(method, string(data))
 	})
 }
 

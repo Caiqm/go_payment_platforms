@@ -3,7 +3,7 @@ package bytedance
 import "fmt"
 
 const (
-	kContentTypeJson = "application/json;charset=utf-8"
+	kContentTypeJson = "application/json"
 	kContentTypeForm = "multipart/form-data;charset=utf-8"
 	kTimeFormat      = "2006-01-02 15:04:05"
 )

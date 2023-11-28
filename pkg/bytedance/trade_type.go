@@ -8,24 +8,24 @@ type Trade struct {
 // TradeEcPay 担保交易 https://developer.open-douyin.com/docs/resource/zh-CN/mini-app/develop/server/ecpay/pay-list/pay/
 type TradeEcPay struct {
 	Trade
-	TotalAmount     int             `json:"total_amount"` // 支付价格。 单位为[分]
-	Subject         string          `json:"subject"`      // 商品描述。 长度限制不超过 128 字节且不超过 42 字符
-	Body            string          `json:"body"`         // 商品详情 长度限制不超过 128 字节且不超过 42 字符
-	ValidTime       int             `json:"valid_time"`   // 订单过期时间(秒)。最小5分钟，最大2天，小于5分钟会被置为5分钟，大于2天会被置为2天，取值范围：[300,172800]
-	CpExtra         string          `json:"cp_extra"`     // 开发者自定义字段，回调原样回传。 超过最大长度会被截断(2048)
-	NotifyUrl       string          `json:"notify_url"`
-	ThirdPartyId    string          `json:"thirdparty_id"`     // 第三方平台服务商 id，非服务商模式留空，服务商模式接入必传
-	StoreUid        string          `json:"store_uid"`         // 可用此字段指定本单使用的收款商户号（目前为灰度功能，需要联系平台运营添加白名单，白名单添加1小时后生效；未在白名单的小程序，该字段不生效）多门店模式下可传
-	DisableMsg      int             `json:"disable_msg"`       // 是否屏蔽支付完成后推送用户抖音消息，1-屏蔽 0-非屏蔽，默认为0。 特别注意： 若接入POI, 请传1。因为POI订单体系会发消息，所以不用再接收一次担保支付推送消息
-	MsgPage         string          `json:"msg_page"`          // 支付完成后推送给用户的抖音消息跳转页面，开发者需要传入在app.json中定义的链接，如果不传则跳转首页。
-	ExpandOrderInfo ExpandOrderInfo `json:"expand_order_info"` // 订单拓展信息，{"original_delivery_fee":10,"actual_delivery_fee":10}
-	LimitPayWay     string          `json:"limit_pay_way"`     // 屏蔽指定支付方式，屏蔽多个支付方式，请使用逗号","分割，枚举值：屏蔽微信支付：LIMIT_WX，屏蔽支付宝支付：LIMIT_ALI
+	TotalAmount     int64  `json:"total_amount"` // 支付价格。 单位为[分]
+	Subject         string `json:"subject"`      // 商品描述。 长度限制不超过 128 字节且不超过 42 字符
+	Body            string `json:"body"`         // 商品详情 长度限制不超过 128 字节且不超过 42 字符
+	ValidTime       int64  `json:"valid_time"`   // 订单过期时间(秒)。最小5分钟，最大2天，小于5分钟会被置为5分钟，大于2天会被置为2天，取值范围：[300,172800]
+	CpExtra         string `json:"cp_extra"`     // 开发者自定义字段，回调原样回传。 超过最大长度会被截断(2048)
+	NotifyUrl       string `json:"notify_url"`
+	ThirdPartyId    string `json:"thirdparty_id"`               // 第三方平台服务商 id，非服务商模式留空，服务商模式接入必传
+	StoreUid        string `json:"store_uid,omitempty"`         // 可用此字段指定本单使用的收款商户号（目前为灰度功能，需要联系平台运营添加白名单，白名单添加1小时后生效；未在白名单的小程序，该字段不生效）多门店模式下可传
+	DisableMsg      int64  `json:"disable_msg,omitempty"`       // 是否屏蔽支付完成后推送用户抖音消息，1-屏蔽 0-非屏蔽，默认为0。 特别注意： 若接入POI, 请传1。因为POI订单体系会发消息，所以不用再接收一次担保支付推送消息
+	MsgPage         string `json:"msg_page,omitempty"`          // 支付完成后推送给用户的抖音消息跳转页面，开发者需要传入在app.json中定义的链接，如果不传则跳转首页。
+	ExpandOrderInfo string `json:"expand_order_info,omitempty"` // 订单拓展信息，{"original_delivery_fee":10,"actual_delivery_fee":10}
+	LimitPayWay     string `json:"limit_pay_way,omitempty"`     // 屏蔽指定支付方式，屏蔽多个支付方式，请使用逗号","分割，枚举值：屏蔽微信支付：LIMIT_WX，屏蔽支付宝支付：LIMIT_ALI
 }
 
 // ExpandOrderInfo 参数
 type ExpandOrderInfo struct {
-	OriginalDeliveryFee int `json:"original_delivery_fee"` // 配送费原价，单位为[分]，仅外卖小程序需要传对应信息
-	ActualDeliveryFee   int `json:"actual_delivery_fee"`   // 实付配送费，单位为[分]，仅外卖小程序需要传对应信息
+	OriginalDeliveryFee int `json:"original_delivery_fee,omitempty"` // 配送费原价，单位为[分]，仅外卖小程序需要传对应信息
+	ActualDeliveryFee   int `json:"actual_delivery_fee,omitempty"`   // 实付配送费，单位为[分]，仅外卖小程序需要传对应信息
 }
 
 // TradeEcPayRsp 担保交易响应参数
@@ -49,7 +49,7 @@ type TradeOrderQueryRsp struct {
 	OutOrderNo  string      `json:"out_order_no"`       // 开发者侧的订单号
 	OrderId     string      `json:"order_id"`           // 抖音侧唯一订单号
 	PaymentInfo PaymentInfo `json:"payment_info"`       // 支付信息
-	CpsInfo     CpsInfo     `json:"cps_info,omitempty"` // 若该订单为CPS订单，该字段会返回该笔订单的CPS相关信息
+	CpsInfo     interface{} `json:"cps_info,omitempty"` // 若该订单为CPS订单，该字段会返回该笔订单的CPS相关信息
 }
 
 // PaymentInfo 支付信息
@@ -80,7 +80,7 @@ type TradeRefund struct {
 	CpExtra      string `json:"cp_extra"`      // 开发者自定义字段，回调原样回传
 	NotifyUrl    string `json:"notify_url"`    // 商户自定义回调地址，必须以 https 开头，支持 443 端口
 	ThirdPartyId string `json:"thirdparty_id"` // 第三方平台服务商id，服务商模式接入必传，非服务商模式留空
-	DisableMsg   int    `json:"disable_msg"`   // 是否屏蔽支付完成后推送用户抖音消息，1-屏蔽 0-非屏蔽，默认为0。 特别注意： 若接入POI, 请传1。因为POI订单体系会发消息，所以不用再接收一次担保支付推送消息
+	DisableMsg   int64  `json:"disable_msg"`   // 是否屏蔽支付完成后推送用户抖音消息，1-屏蔽 0-非屏蔽，默认为0。 特别注意： 若接入POI, 请传1。因为POI订单体系会发消息，所以不用再接收一次担保支付推送消息
 	MsgPage      string `json:"msg_page"`      // 支付完成后推送给用户的抖音消息跳转页面，开发者需要传入在app.json中定义的链接，如果不传则跳转首页。
 }
 

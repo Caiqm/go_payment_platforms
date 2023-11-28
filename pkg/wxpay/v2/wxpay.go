@@ -348,7 +348,7 @@ func (c *Client) decode(data []byte, returnType string, needVerifySign bool, res
 		}
 		// 判断是否成功
 		var errNBytes = raw[kFieldErrCode]
-		if len(errNBytes) > 0 {
+		if len(errNBytes) > 0 && string(errNBytes) != "0" {
 			var aErr *AppletError
 			if err = json.Unmarshal(data, &aErr); err != nil {
 				return

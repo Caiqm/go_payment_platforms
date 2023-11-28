@@ -23,6 +23,7 @@ import (
 )
 
 var (
+	ErrNullParams           = errors.New("alipay: bad params")
 	ErrBadResponse          = errors.New("alipay: bad response")
 	ErrSignNotFound         = errors.New("alipay: sign content not found")
 	ErrAliPublicKeyNotFound = errors.New("alipay: alipay public key not found")
@@ -46,7 +47,10 @@ type Client struct {
 type OptionFunc func(c *Client)
 
 // 初始化客户端
-func New(appId, privateKey string, isProduction bool, opts ...OptionFunc) (nClient *Client) {
+func New(appId, privateKey string, isProduction bool, opts ...OptionFunc) (nClient *Client, err error) {
+	if appId == "" || privateKey == "" {
+		return nil, ErrNullParams
+	}
 	nClient = &Client{}
 	nClient.isProduction = isProduction
 	nClient.appId = appId
