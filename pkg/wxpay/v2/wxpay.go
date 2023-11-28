@@ -94,17 +94,17 @@ func New(appId, secret string, opts ...OptionFunc) (nClient *Client, err error) 
 	nClient.secret = secret
 	nClient.client = http.DefaultClient
 	nClient.location = time.Local
-	for _, opt := range opts {
-		if opt != nil {
-			opt(nClient)
-		}
-	}
+	nClient.LoadOptionFunc(opts...)
 	return
 }
 
 // 加载接口链接
-func (c *Client) LoadApiHost(opt OptionFunc) {
-	opt(c)
+func (c *Client) LoadOptionFunc(opts ...OptionFunc) {
+	for _, opt := range opts {
+		if opt != nil {
+			opt(c)
+		}
+	}
 }
 
 // 加载证书文件
@@ -214,6 +214,23 @@ func (c *Client) formatBizQueryParaMap(parameters url.Values) string {
 	return signStr
 }
 
+// 格式化参数，将url.values转map
+func (c *Client) formatUrlValueToMap(parameters url.Values) map[string]string {
+	// 将key值提取出来
+	var strs []string
+	for k := range parameters {
+		strs = append(strs, k)
+	}
+	// 排序
+	sort.Strings(strs)
+	// 赋值新map
+	m := make(map[string]string)
+	for _, k := range strs {
+		m[k] = parameters[k][0]
+	}
+	return m
+}
+
 // 产生随机字符串，不长于32位
 func (c *Client) createNonceStr() string {
 	length := 32
@@ -224,6 +241,44 @@ func (c *Client) createNonceStr() string {
 		bytes[i] = strByte[r.Intn(len(strByte))]
 	}
 	return string(bytes)
+}
+
+type payXml map[string]string
+
+type xmlMapEntry struct {
+	XMLName xml.Name
+	Value   string `xml:",chardata"`
+}
+
+// 重写加密xml
+func (m payXml) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if len(m) == 0 {
+		return nil
+	}
+	err := e.EncodeToken(start)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		e.Encode(xmlMapEntry{XMLName: xml.Name{Local: k}, Value: v})
+	}
+	return e.EncodeToken(start.End())
+}
+
+// 重写加解密xml
+func (m *payXml) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	*m = payXml{}
+	for {
+		var e xmlMapEntry
+		err := d.Decode(&e)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		(*m)[e.XMLName.Local] = e.Value
+	}
+	return nil
 }
 
 // 请求主方法
@@ -242,7 +297,11 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 			if strings.ToLower(param.ReturnType()) == "json" {
 				req.PostForm = values
 			} else {
-				reqByte, _ := xml.Marshal(values)
+				mapValues := c.formatUrlValueToMap(values)
+				var reqByte []byte
+				if reqByte, err = xml.Marshal(payXml(mapValues)); err != nil {
+					return
+				}
 				req.Body = io.NopCloser(bytes.NewBuffer(reqByte))
 			}
 		} else if method == http.MethodGet {
@@ -272,16 +331,16 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 	if err != nil {
 		return err
 	}
-	// 返回结果
-	if c.onReceivedData != nil {
-		c.onReceivedData("response", bodyBytes)
-	}
 	err = c.decode(bodyBytes, param.ReturnType(), param.NeedVerify(), result)
 	return
 }
 
 // 解密返回数据
 func (c *Client) decode(data []byte, returnType string, needVerifySign bool, result interface{}) (err error) {
+	// 返回结果
+	if c.onReceivedData != nil {
+		c.onReceivedData("response", data)
+	}
 	if strings.ToLower(returnType) == "json" || returnType == "" {
 		var raw = make(map[string]json.RawMessage)
 		if err = json.Unmarshal(data, &raw); err != nil {
@@ -300,21 +359,16 @@ func (c *Client) decode(data []byte, returnType string, needVerifySign bool, res
 			return
 		}
 	} else {
-		tmpResult := make(map[string]interface{})
-		if err = xml.Unmarshal(data, &tmpResult); err != nil {
+		var pErr PayError
+		if err = xml.Unmarshal(data, &pErr); err != nil {
 			return
 		}
-		// 判断是否成功
-		var resultMap = tmpResult
-		if _, has := resultMap[kFieldReturnCode]; !has {
-			return ErrWxReturnCodeNotFound
-		}
-		if resultMap[kFieldReturnCode].(ReturnCode) != ReturnCodeSuccess {
-			var pErr *PayError
-			if err = json.Unmarshal(data, &pErr); err != nil {
-				return
-			}
+		if pErr.IsFailure() {
 			return pErr
+		}
+		resultMap := make(map[string]string)
+		if err = xml.Unmarshal(data, (*payXml)(&resultMap)); err != nil {
+			return
 		}
 		// 校验签名
 		if needVerifySign {

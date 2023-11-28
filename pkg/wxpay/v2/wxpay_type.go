@@ -102,7 +102,14 @@ type PayError struct {
 }
 
 func (e PayError) Error() string {
-	return fmt.Sprintf("%s - %s，%s - %s，%s", e.ReturnCode, e.ReturnMsg, e.ErrCode, e.ErrCodeDes, e.ResultCode)
+	errMsg := fmt.Sprintf("%s - %s", e.ReturnCode, e.ReturnMsg)
+	if e.ErrCode != "" {
+		errMsg = fmt.Sprintf("%s，%s - %s", errMsg, e.ErrCode, e.ErrCodeDes)
+	}
+	if e.ResultCode != "" {
+		errMsg = fmt.Sprintf("%s，%s", errMsg, e.ResultCode)
+	}
+	return errMsg
 }
 
 func (e PayError) IsSuccess() bool {
