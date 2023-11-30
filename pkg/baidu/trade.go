@@ -25,3 +25,31 @@ func (c *Client) TradePolymerPayment(param TradePolymerPayment) (result TradePol
 	}
 	return
 }
+
+// TradeOrderQuery 查询订单 https://smartprogram.baidu.com/docs/third/pay/get_by_tp_order_id/
+// GET https://openapi.baidu.com/rest/2.0/smartapp/pay/paymentservice/tp/findByTpOrderId
+func (c *Client) TradeOrderQuery(param TradeOrderQuery) (result *TradeOrderQueryRsp, err error) {
+	err = c.doRequest("GET", param, &result)
+	return
+}
+
+// TradeCloseOrder 关闭订单 https://smartprogram.baidu.com/docs/third/pay/close_order/
+// GET https://openapi.baidu.com/rest/2.0/smartapp/pay/paymentservice/tp/cancelOrder
+func (c *Client) TradeCloseOrder(param TradeCloseOrder) (result *TradeCloseOrderRsp, err error) {
+	err = c.doRequest("GET", param, &result)
+	return
+}
+
+// TradeRefund 申请退款 https://smartprogram.baidu.com/docs/third/pay/apply_order_refund/
+// POST https://openapi.baidu.com/rest/2.0/smartapp/pay/paymentservice/tp/applyOrderRefund
+func (c *Client) TradeRefund(param TradeRefund) (result *TradeRefundRsp, err error) {
+	err = c.doRequest("POST", param, &result)
+	return
+}
+
+// TradeRefundQuery 查询退款 https://smartprogram.baidu.com/docs/third/pay/get_order_refund/
+// GET https://openapi.baidu.com/rest/2.0/smartapp/pay/paymentservice/tp/findOrderRefund
+func (c *Client) TradeRefundQuery(param TradeRefundQuery) (result *TradeRefundQueryRsp, err error) {
+	err = c.doRequest("GET", param, &result)
+	return
+}

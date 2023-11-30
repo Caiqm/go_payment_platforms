@@ -33,3 +33,131 @@ type TpData struct {
 	ReturnData  map[string]interface{} `json:"returnData"`   // 业务方用于透传的业务变量 支付成功后会以 query 形式注入到 payResultUrl 页面中（query 可以在页面的 onLoad 生命周期内获取）
 	DisplayData string                 `json:"display_data"` // 收银台定制页面展示属性，非定制业务请置空 用于支付页面展示订单详细信息
 }
+
+// TradeOrderQuery 查询订单 https://smartprogram.baidu.com/docs/third/pay/get_by_tp_order_id/
+type TradeOrderQuery struct {
+	AuxParam
+	AccessToken string `json:"access_token"` // 授权小程序的接口调用凭据
+	TpOrderId   string `json:"tpOrderId"`    // 开发者订单 ID
+	PmAppKey    string `json:"pmAppKey"`     // 调起百度收银台的支付服务 appKey
+}
+
+func (aux TradeOrderQuery) NeedSign() bool {
+	return false
+}
+
+func (aux TradeOrderQuery) NeedAppId() bool {
+	return false
+}
+
+// TradeOrderQueryRsp 查询订单响应参数
+type TradeOrderQueryRsp struct {
+	ErrorNo
+	Data struct {
+		BizInfo       string `json:"bizInfo"`       // 业务扩展字段
+		Count         int    `json:"count"`         // 数量
+		CreateTime    int    `json:"createTime"`    // 创建时间
+		DealId        int    `json:"dealId"`        // 跳转百度收银台支付必带参数之一
+		OrderId       int    `json:"orderId"`       // 百度订单ID
+		OriPrice      int    `json:"oriPrice"`      // 原价
+		ParentOrderId int    `json:"parentOrderId"` // 购物车订单父订单ID
+		ParentType    int    `json:"parentType"`    // 订单类型
+		PayMoney      int    `json:"payMoney"`      // 支付金额
+		SettlePrice   int    `json:"settlePrice"`   // 结算金额
+		Status        int    `json:"status"`        // 订单状态 -1订单已取消/订单已异常退款  1订单支付中 2订单已支付
+		SubStatus     int    `json:"subStatus"`     // 订单子状态
+		TotalMoney    int    `json:"totalMoney"`    // 总金额
+		TpId          int    `json:"tpId"`          // tpid
+		TpOrderId     string `json:"tpOrderId"`     // 开发者订单ID
+		TradeNo       string `json:"tradeNo"`       // 支付单号
+		Type          int    `json:"type"`          // ordertype
+		OpenId        int    `json:"openId"`        // 小程序用户id
+		AppKey        int    `json:"appKey"`        // 小程序appkey
+		AppId         int    `json:"appId"`         // 小程序appid
+		UserId        int    `json:"userId"`        // 用户 id 与支付状态通知中的保持一致
+	} `json:"data"`
+}
+
+// TradeCloseOrder 关闭订单 https://smartprogram.baidu.com/docs/third/pay/close_order/
+type TradeCloseOrder struct {
+	AuxParam
+	AccessToken string `json:"access_token"` // 授权小程序的接口调用凭据
+	TpOrderId   string `json:"tpOrderId"`    // 开发者订单 ID
+	PmAppKey    string `json:"pmAppKey"`     // 调起百度收银台的支付服务 appKey
+}
+
+func (aux TradeCloseOrder) NeedSign() bool {
+	return false
+}
+
+func (aux TradeCloseOrder) NeedAppId() bool {
+	return false
+}
+
+// TradeCloseOrderRsp 关闭订单响应参数
+type TradeCloseOrderRsp struct {
+	ErrorNo
+	Data bool `json:"data"`
+}
+
+// TradeRefund 申请退款 https://smartprogram.baidu.com/docs/third/pay/apply_order_refund/
+type TradeRefund struct {
+	AuxParam
+	AccessToken      string `json:"access_token" form:"access_token"`                   // 授权小程序的接口调用凭据
+	ApplyRefundMoney int64  `json:"applyRefundMoney,omitempty" form:"applyRefundMoney"` // 退款金额（单位：分），该字段最大不能超过支付回调中的总金额（totalMoney） 1.如不填金额时，默认整单发起退款 2.含有百度平台营销的订单，目前只支持整单发起退款，不支持部分多次退款
+	BizRefundBatchID string `json:"bizRefundBatchId" form:"bizRefundBatchId"`           // 开发者退款批次
+	IsSkipAudit      int64  `json:"isSkipAudit" form:"isSkipAudit"`                     // 是否跳过审核，不需要百度请求开发者退款审核请传 1，默认为0； 0：不跳过开发者业务方审核；1：跳过开发者业务方审核。 若不跳过审核，请对接请求业务方退款审核接口
+	OrderID          int64  `json:"orderId" form:"orderId"`                             // 百度收银台订单 ID
+	RefundReason     string `json:"refundReason" form:"refundReason"`                   // 退款原因
+	RefundType       int64  `json:"refundType" form:"refundType"`                       // 退款类型 1：用户发起退款；2：开发者业务方客服退款；3：开发者服务异常退款。
+	TpOrderID        string `json:"tpOrderId" form:"tpOrderId"`                         // 开发者订单 ID
+	UserID           int64  `json:"userId" form:"userId"`                               // 百度收银台用户 ID
+	RefundNotifyURL  string `json:"refundNotifyUrl,omitempty" form:"refundNotifyUrl"`   // 退款通知 url ，不传时默认为在开发者后台配置的 url
+	PmAppKey         string `json:"pmAppKey" form:"pmAppKey"`                           // 调起百度收银台的支付服务 appKey
+}
+
+func (aux TradeRefund) NeedSign() bool {
+	return false
+}
+
+func (aux TradeRefund) NeedAppId() bool {
+	return false
+}
+
+// TradeRefundRsp 申请退款响应参数
+type TradeRefundRsp struct {
+	ErrorNo
+	Data struct {
+		RefundBatchId  string `json:"refundBatchId"`  // 平台退款批次号
+		RefundPayMoney int    `json:"refundPayMoney"` // 平台可退退款金额【分为单位】
+	} `json:"data"`
+}
+
+// TradeRefundQuery 查询退款 https://smartprogram.baidu.com/docs/third/pay/get_order_refund/
+type TradeRefundQuery struct {
+	AuxParam
+	AccessToken string `json:"access_token"` // 授权小程序的接口调用凭据
+	TpOrderId   string `json:"tpOrderId"`    // 开发者订单 ID
+	PmAppKey    string `json:"pmAppKey"`     // 调起百度收银台的支付服务 appKey
+	UserId      string `json:"userId"`       // 百度收银台用户 ID
+}
+
+func (aux TradeRefundQuery) NeedSign() bool {
+	return false
+}
+
+func (aux TradeRefundQuery) NeedAppId() bool {
+	return false
+}
+
+// TradeRefundQueryRsp 查询退款响应参数
+type TradeRefundQueryRsp struct {
+	ErrorNo
+	Data []struct {
+		BizRefundBatchId string `json:"bizRefundBatchId"` // 开发者退款批次id
+		OrderId          int    `json:"orderId"`          // 退款订单号
+		RefundBatchId    int    `json:"refundBatchId"`    // 退款批次id
+		RefundStatus     int    `json:"refundStatus"`     // 退款状态 1 退款中 2 退款成功 3 退款失败
+		UserId           int    `json:"userId"`           // 退款用户id
+	} `json:"data"`
+}

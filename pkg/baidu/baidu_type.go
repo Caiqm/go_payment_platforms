@@ -57,10 +57,18 @@ func (e Err) Error() string {
 type ErrorNo struct {
 	Errno  int    `json:"errno"`
 	Errmsg string `json:"errmsg"`
+	Msg    string `json:"msg"`
 }
 
 func (e ErrorNo) Error() string {
-	return fmt.Sprintf("%d - %s", e.Errno, e.Errmsg)
+	errMsg := fmt.Sprintf("%d", e.Errno)
+	if e.Errmsg != "" {
+		errMsg = fmt.Sprintf("%s - %s", errMsg, e.Errmsg)
+	}
+	if e.Msg != "" {
+		errMsg = fmt.Sprintf("%s - %s", errMsg, e.Msg)
+	}
+	return errMsg
 }
 
 // openapi错误
