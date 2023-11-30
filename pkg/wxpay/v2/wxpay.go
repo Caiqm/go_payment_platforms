@@ -331,15 +331,15 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 	if err != nil {
 		return err
 	}
-	err = c.decode(bodyBytes, param.ReturnType(), param.NeedVerify(), result)
+	err = c.decode(bodyBytes, method, param.ReturnType(), param.NeedVerify(), result)
 	return
 }
 
 // 解密返回数据
-func (c *Client) decode(data []byte, returnType string, needVerifySign bool, result interface{}) (err error) {
+func (c *Client) decode(data []byte, method, returnType string, needVerifySign bool, result interface{}) (err error) {
 	// 返回结果
 	if c.onReceivedData != nil {
-		c.onReceivedData("response", data)
+		c.onReceivedData(method, data)
 	}
 	if strings.ToLower(returnType) == "json" || returnType == "" {
 		var raw = make(map[string]json.RawMessage)

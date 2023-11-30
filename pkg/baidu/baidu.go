@@ -91,6 +91,20 @@ func (c *Client) LoadOptionFunc(opts ...OptionFunc) {
 	}
 }
 
+// 加载公钥
+func (c *Client) LoadAppPublicKey(pubKey string) {
+	if pubKey != "" {
+		c.publicKey = pubKey
+	}
+}
+
+// 加载私钥
+func (c *Client) LoadAppPrivateKey(priKey string) {
+	if priKey != "" {
+		c.privateKey = priKey
+	}
+}
+
 // 结构体转map
 func (c *Client) structToMap(stu interface{}) map[string]interface{} {
 	// 结构体转map
@@ -167,8 +181,11 @@ func (c *Client) parsePrivateKey(prvKey string) (pk *rsa.PrivateKey, err error) 
 	}
 	privateKey, err := x509.ParsePKCS8PrivateKey(keyByts)
 	if err != nil {
-		fmt.Println("ParsePKCS8PrivateKey err", err)
-		return
+		privateKey, err = x509.ParsePKCS1PrivateKey(keyByts)
+		if err != nil {
+			err = fmt.Errorf("解析密钥失败，err: %v", err)
+			return
+		}
 	}
 	pk = privateKey.(*rsa.PrivateKey)
 	return

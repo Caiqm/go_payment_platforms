@@ -5,9 +5,11 @@ import (
 	"testing"
 )
 
+// 百度收银台
 func TestClient_TradePolymerPayment(t *testing.T) {
 	t.Log("========== TradePolymerPayment ==========")
 	client.LoadOptionFunc(baidu.WithPayParams("", ""))
+	client.LoadAppPrivateKey("")
 	var p baidu.TradePolymerPayment
 	p.TotalAmount = "1"
 	p.TpOrderId = "TS13245678997546546"
@@ -18,5 +20,5 @@ func TestClient_TradePolymerPayment(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(r)
+	t.Logf("%+v", r)
 }

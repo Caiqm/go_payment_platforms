@@ -189,15 +189,15 @@ func (c *Client) doRequest(method string, param Param, result interface{}) (err 
 	if err != nil {
 		return err
 	}
-	err = c.decode(bodyBytes, result)
+	err = c.decode(bodyBytes, method, result)
 	return
 }
 
 // 解密返回数据
-func (c *Client) decode(data []byte, result interface{}) (err error) {
+func (c *Client) decode(data []byte, method string, result interface{}) (err error) {
 	// 返回结果
 	if c.onReceivedData != nil {
-		c.onReceivedData("response", data)
+		c.onReceivedData(method, data)
 	}
 	var raw = make(map[string]json.RawMessage)
 	if err = json.Unmarshal(data, &raw); err != nil {
