@@ -3,6 +3,7 @@ module github.com/Caiqm/go_payment_platforms
 go 1.21
 
 require (
+	github.com/Caiqm/alipay v0.0.0-20231201035034-460a4b4b806b
 	github.com/goccy/go-json v0.10.2
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0

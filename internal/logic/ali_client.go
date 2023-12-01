@@ -1,8 +1,8 @@
 package logic
 
-import "github.com/Caiqm/go_payment_platforms/pkg/alipay"
+import "github.com/Caiqm/alipay"
 
 // 初始化
-func NewPayClient(appId string, isProduction bool) *alipay.Client {
+func NewPayClient(appId string, isProduction bool) (*alipay.Client, error) {
 	return alipay.New(appId, "", isProduction)
 }
