@@ -2,7 +2,6 @@ package logic
 
 import (
 	"context"
-	"github.com/Caiqm/go_payment_platforms/pkg/alipay"
 	pb "github.com/Caiqm/go_payment_platforms/protoc/aliyun_pb"
 	"github.com/goccy/go-json"
 	"google.golang.org/grpc/codes"
