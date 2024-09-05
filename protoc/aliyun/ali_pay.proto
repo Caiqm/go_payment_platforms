@@ -14,10 +14,11 @@ message PayRequest {
   string QuitURL = 7;
   string BuyerId = 8;
   string BuyerOpenId = 9;
-  string OpAppId = 10;
-  string AuthToken = 11;
-  string AppAuthToken = 12;
-  string AppId = 13;
+  string OpBuyerOpenId = 10;
+  string OpAppId = 11;
+  string AuthToken = 12;
+  string AppAuthToken = 13;
+  string AppId = 14;
 }
 
 // 支付返回参数，只有APP与小程序

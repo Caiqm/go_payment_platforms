@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"github.com/Caiqm/alipay"
 	pb "github.com/Caiqm/go_payment_platforms/protoc/aliyun_pb"
 	"github.com/goccy/go-json"
 	"google.golang.org/grpc/codes"
@@ -23,11 +24,11 @@ func (ap *AliPay) TradeAppPay(ctx context.Context, req *pb.PayRequest) (rpy *pb.
 	if req.ProductCode != "" {
 		p.ProductCode = "QUICK_MSECURITY_PAY"
 	}
-	param, err := NewPayClient(req.AppId, false).TradeAppPay(p)
+	client, err := NewPayClient(req.AppId, false)
 	if err != nil {
 		return
 	}
-	rpy.PayURL = param
+	rpy.PayURL, err = client.TradeAppPay(p)
 	return
 }
 
@@ -42,10 +43,11 @@ func (ap *AliPay) TradePagePay(ctx context.Context, req *pb.PayRequest) (rpy *pb
 	if req.ProductCode != "" {
 		p.ProductCode = "FAST_INSTANT_TRADE_PAY"
 	}
-	param, err := NewPayClient(req.AppId, false).TradePagePay(p)
+	client, err := NewPayClient(req.AppId, false)
 	if err != nil {
 		return
 	}
+	param, err := client.TradePagePay(p)
 	r, _ := json.Marshal(param)
 	rpy.PayURL = string(r)
 	return
@@ -58,12 +60,24 @@ func (ap *AliPay) TradeCreate(ctx context.Context, req *pb.PayRequest) (rpy *pb.
 	p.Subject = req.Subject
 	p.OutTradeNo = req.OutTradeNo
 	p.TotalAmount = req.TotalAmount
-	p.BuyerId = req.BuyerId
 	p.AppAuthToken = req.AppAuthToken
 	if req.ProductCode != "" {
-		p.ProductCode = "FACE_TO_FACE_PAYMENT"
+		p.ProductCode = "JSAPI_PAY"
 	}
-	param, err := NewPayClient(req.AppId, false).TradeCreate(p)
+	// 买家信息
+	if req.BuyerId != "" {
+		p.BuyerId = req.BuyerId
+	} else if req.BuyerOpenId != "" {
+		p.BuyerOpenId = req.BuyerOpenId
+	} else if req.OpAppId != "" {
+		p.OpAppId = req.OpAppId
+		p.OpBuyerOpenId = req.OpBuyerOpenId
+	}
+	client, err := NewPayClient(req.AppId, false)
+	if err != nil {
+		return
+	}
+	param, err := client.TradeCreate(p)
 	if err != nil {
 		return
 	}
@@ -83,7 +97,11 @@ func (ap *AliPay) TradeWapPay(ctx context.Context, req *pb.PayRequest) (rpy *pb.
 	if req.ProductCode != "" {
 		p.ProductCode = "QUICK_WAP_WAY"
 	}
-	param, err := NewPayClient(req.AppId, false).TradeWapPay(p)
+	client, err := NewPayClient(req.AppId, false)
+	if err != nil {
+		return
+	}
+	param, err := client.TradeWapPay(p)
 	if err != nil {
 		return
 	}
@@ -98,7 +116,11 @@ func (ap *AliPay) TradeQuery(ctx context.Context, req *pb.PayQueryRequest) (rpy 
 	p.TradeNo = req.TradeNo
 	p.OutTradeNo = req.OutTradeNo
 	p.AppAuthToken = req.AppAuthToken
-	param, err := NewPayClient(req.AppId, false).TradeQuery(p)
+	client, err := NewPayClient(req.AppId, false)
+	if err != nil {
+		return
+	}
+	param, err := client.TradeQuery(p)
 	if err != nil {
 		return
 	}
@@ -116,7 +138,11 @@ func (ap *AliPay) TradeRefund(ctx context.Context, req *pb.RefundRequest) (rpy *
 	p.RefundAmount = req.RefundAmount
 	p.AppAuthToken = req.AppAuthToken
 	p.RefundReason = req.RefundReason
-	param, err := NewPayClient(req.AppId, false).TradeRefund(p)
+	client, err := NewPayClient(req.AppId, false)
+	if err != nil {
+		return
+	}
+	param, err := client.TradeRefund(p)
 	if err != nil {
 		return
 	}
@@ -132,7 +158,11 @@ func (ap *AliPay) TradeFastPayRefundQuery(ctx context.Context, req *pb.RefundQue
 	p.OutTradeNo = req.OutTradeNo
 	p.OutRequestNo = req.OutRequestNo
 	p.AppAuthToken = req.AppAuthToken
-	param, err := NewPayClient(req.AppId, false).TradeFastPayRefundQuery(p)
+	client, err := NewPayClient(req.AppId, false)
+	if err != nil {
+		return
+	}
+	param, err := client.TradeFastPayRefundQuery(p)
 	if err != nil {
 		return
 	}

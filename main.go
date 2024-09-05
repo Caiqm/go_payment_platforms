@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// 监听端口
-	lis, err := net.Listen("tcp", ":8082")
+	lis, err := net.Listen("tcp", ":8092")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
