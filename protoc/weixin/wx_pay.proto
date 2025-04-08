@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package weixin_pb;
+option go_package = "../weixin_pb;weixin_pb";
+
+// 支付请求参数
+message PayRequest {
+  string AppId = 1;
+  string Secret = 2;
+  string MchId = 3;
+  string ApiKey = 4;
+  string Body = 5;
+  string Attach = 6;
+  string OutTradeNo = 7;
+  uint32 TotalFee = 8;
+  string SpbillCreateIp = 9;
+  string OpenId = 10;
+  string NotifyUrl = 11;
+}
+
+message MpPayReply {
+  string AppID = 1;
+  string Timestamp = 2;
+  string Package = 3;
+  string NonceStr = 4;
+  string SignType = 5;
+  string Sign = 6;
+}
+
+message PayReply {
+  string AppId = 1;
+  string NonceStr = 2;
+  string MchId = 3;
+  string PrepayId = 4;
+  string Timestamp = 5;
+  string Sign = 6;
+  string TradeType = 7;
+}
+
+message WapPayReply {
+  string AppId = 1;
+  string NonceStr = 2;
+  string MchId = 3;
+  string PrepayId = 4;
+  string MWebUrl = 5;
+  string Sign = 6;
+  string TradeType = 7;
+}
+
+message NativePayReply {
+  string AppId = 1;
+  string NonceStr = 2;
+  string MchId = 3;
+  string PrepayId = 4;
+  string CodeUrl = 5;
+  string Sign = 6;
+  string TradeType = 7;
+}
+
+// 支付查询
+message PayQueryRequest {
+  string OutTradeNo = 1;
+  string TransactionId = 2;
+  string AppId = 3;
+  string MchId = 4;
+  string Secret = 5;
+  string ApiKey = 6;
+}
+
+message PayQueryReply {
+  bytes QueryResult = 1;
+}
+
+message RefundRequest {
+  string OutTradeNo = 1;
+  string TransactionId = 2;
+  string OutRefundNo = 3;
+  uint32 RefundFee = 4;
+  string RefundDesc = 5;
+  string AppId = 6;
+  string MchId = 7;
+  string Secret = 8;
+  string ApiKey = 9;
+  uint32 TotalFee = 10;
+  string NotifyUrl = 11;
+}
+
+message RefundReply {
+  bytes RefundResult = 1;
+}
+
+service WxPay {
+  rpc TradeMpPay (PayRequest) returns (MpPayReply) {}
+  rpc TradeAppPay (PayRequest) returns (PayReply) {}
+  rpc TradeWapPay (PayRequest) returns (WapPayReply) {}
+  rpc TradeJsApiPay (PayRequest) returns (PayReply) {}
+  rpc TradeNativePay (PayRequest) returns (NativePayReply) {}
+  rpc TradeQuery (PayRequest) returns (PayQueryReply) {}
+  rpc TradeRefund (RefundRequest) returns (RefundReply) {}
+}

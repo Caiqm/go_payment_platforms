@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package weixin_pb;
+option go_package = "../weixin_pb;weixin_pb";
+
+// 微信小程序登录请求参数
+message MpLoginRequest {
+  string GrantType = 1;
+  string JsCode = 2;
+  string Secret = 3;
+  string AppId = 4;
+}
+
+// 微信小程序登录返回参数
+message MpLoginReply {
+  string UnionId = 1;
+  string OpenId = 2;
+  string SessionKey = 3;
+}
+
+// 微信小程序手机号授权
+message MpPhoneNumberRequest {
+  string Code = 1;
+  string OpenId = 2;
+  string Secret = 3;
+  string AppId = 4;
+}
+
+// 微信小程序手机号授权
+message MpPhoneNumberReply {
+  string PhoneNumber = 1;
+  string PurePhoneNumber = 2;
+  int32 CountryCode = 3;
+  Watermark Watermark = 4;
+}
+
+// 微信小程序手机号授权数据水印
+message Watermark {
+  string AppId = 1;
+  int32 Timestamp = 2;
+}
+
+service WxMpLogin {
+  rpc Code2Session (MpLoginRequest) returns (MpLoginReply) {}
+  rpc GetPhoneNumber (MpPhoneNumberRequest) returns (MpPhoneNumberReply) {}
+}

@@ -15,7 +15,7 @@ type AliMpLogin struct {
 func (mpl *AliMpLogin) SystemOauthToken(ctx context.Context, req *pb.MpLoginRequest) (rpy *pb.MpLoginReply, err error) {
 	client, _ := NewPayClient(req.AppId, false)
 	client.OnReceivedData(func(method string, data []byte) {
-		fmt.Println(method, string(data))
+		fmt.Println("【支付宝小程序登录信息】", method, string(data))
 	})
 	var p = alipay.SystemOauthToken{}
 	p.GrantType = req.GrantType
