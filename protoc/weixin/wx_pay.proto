@@ -12,14 +12,14 @@ message PayRequest {
   string Body = 5;
   string Attach = 6;
   string OutTradeNo = 7;
-  uint32 TotalFee = 8;
+  float TotalFee = 8;
   string SpbillCreateIp = 9;
   string OpenId = 10;
   string NotifyUrl = 11;
 }
 
 message MpPayReply {
-  string AppID = 1;
+  string AppId = 1;
   string Timestamp = 2;
   string Package = 3;
   string NonceStr = 4;
@@ -75,18 +75,33 @@ message RefundRequest {
   string OutTradeNo = 1;
   string TransactionId = 2;
   string OutRefundNo = 3;
-  uint32 RefundFee = 4;
+  float RefundFee = 4;
   string RefundDesc = 5;
   string AppId = 6;
   string MchId = 7;
   string Secret = 8;
   string ApiKey = 9;
-  uint32 TotalFee = 10;
+  float TotalFee = 10;
   string NotifyUrl = 11;
 }
 
 message RefundReply {
   bytes RefundResult = 1;
+}
+
+message RefundQueryRequest {
+  string OutTradeNo = 1;
+  string OutRefundNo = 2;
+  string RefundId = 3;
+  string AppId = 4;
+  string MchId = 5;
+  string Secret = 6;
+  string ApiKey = 7;
+  string TransactionId = 8;
+}
+
+message RefundQueryReply {
+  bytes RefundQueryResult = 1;
 }
 
 service WxPay {
@@ -95,6 +110,7 @@ service WxPay {
   rpc TradeWapPay (PayRequest) returns (WapPayReply) {}
   rpc TradeJsApiPay (PayRequest) returns (PayReply) {}
   rpc TradeNativePay (PayRequest) returns (NativePayReply) {}
-  rpc TradeQuery (PayRequest) returns (PayQueryReply) {}
+  rpc TradeQuery (PayQueryRequest) returns (PayQueryReply) {}
   rpc TradeRefund (RefundRequest) returns (RefundReply) {}
+  rpc TradeRefundQuery (RefundQueryRequest) returns (RefundQueryReply) {}
 }

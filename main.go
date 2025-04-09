@@ -22,6 +22,7 @@ func main() {
 	apb.RegisterAliPayServer(s, &logic.AliPay{})
 	// 微信服务
 	wpb.RegisterWxMpLoginServer(s, &logic.WxMpLogin{})
+	wpb.RegisterWxPayServer(s, &logic.WxPay{})
 	// 打印监听
 	log.Printf("server listening at %v", lis.Addr())
 	if err = s.Serve(lis); err != nil {
