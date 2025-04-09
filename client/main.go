@@ -31,7 +31,7 @@ func aliPayMpLogin(conn *grpc.ClientConn) {
 	r, err := c.SystemOauthToken(ctx, &apb.MpLoginRequest{
 		GrantType: "authorization_code",
 		Code:      "4b203fe6c11548bcabd8da5bb087a83b",
-		AppId:     "2021003110607584",
+		AppId:     "",
 	})
 	if err != nil {
 		log.Fatalf("find err: %v", err)
