@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package douyin_pb;
+option go_package = "../douyin_pb;douyin_pb";
+
+// 抖音小程序登录请求参数
+message MpLoginRequest {
+  string AnonymousCode = 1;
+  string Code = 2;
+  string Secret = 3;
+  string AppId = 4;
+}
+
+// 抖音小程序登录返回参数
+message MpLoginReply {
+  string UnionId = 1;
+  string OpenId = 2;
+  string SessionKey = 3;
+  string AnonymousOpenid = 4;
+}
+
+// 抖音小程序手机号授权
+message MpPhoneNumberRequest {
+  string Code = 1;
+  string Secret = 2;
+  string AppId = 3;
+}
+
+// 抖音小程序手机号授权
+message MpPhoneNumberReply {
+  string PhoneNumber = 1;
+  string PurePhoneNumber = 2;
+  int32 CountryCode = 3;
+  Watermark Watermark = 4;
+}
+
+// 抖音小程序手机号授权数据水印
+message Watermark {
+  string AppId = 1;
+  int32 Timestamp = 2;
+}
+
+service DyMpLogin {
+  rpc Code2Session (MpLoginRequest) returns (MpLoginReply) {}
+  rpc GetPhoneNumber (MpPhoneNumberRequest) returns (MpPhoneNumberReply) {}
+}

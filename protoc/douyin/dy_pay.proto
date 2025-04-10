@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package douyin_pb;
+option go_package = "../douyin_pb;douyin_pb";
+
+message DyPayTransactionRequest {
+  string OutOrderNo = 1;
+  float TotalAmount = 2;
+  uint32 PayExpireSeconds = 3;
+  string PayNotifyUrl = 4;
+  string MerchantUid = 5;
+  repeated SkuList SkuList = 6;
+  EntrySchema OrderEntrySchema = 7;
+  repeated uint32 LimitPayWayList = 8;
+  string SkuAttr = 9;
+}
+
+message SkuList {
+  string SkuId = 1;
+  float Price = 2;
+  uint32 Quantity = 3;
+  string Title = 4;
+  repeated string ImageList = 5;
+  uint32 Type = 6;
+  string TagGroupId = 7;
+  EntrySchema EntrySchema = 8;
+}
+
+message EntrySchema {
+  string Path = 1;
+  string Params = 2;
+}
+
+message DyPayTransactionReply {
+  string Data = 1;
+  string ByteAuthorization = 2;
+}
+
+message TransactionOrderQueryRequest {
+  string OrderId = 1;
+  string OutOrderNo = 2;
+}
+
+service DyPay {
+  rpc TradeTransaction (DyPayTransactionRequest) returns (DyPayTransactionReply) {}
+}

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/Caiqm/go_payment_platforms/internal/logic"
 	apb "github.com/Caiqm/go_payment_platforms/protoc/aliyun_pb"
+	dpb "github.com/Caiqm/go_payment_platforms/protoc/douyin_pb"
 	wpb "github.com/Caiqm/go_payment_platforms/protoc/weixin_pb"
 	"google.golang.org/grpc"
 	"log"
@@ -23,6 +24,8 @@ func main() {
 	// 微信服务
 	wpb.RegisterWxMpLoginServer(s, &logic.WxMpLogin{})
 	wpb.RegisterWxPayServer(s, &logic.WxPay{})
+	// 抖音服务
+	dpb.RegisterDyMpLoginServer(s, &logic.DyMpLogin{})
 	// 打印监听
 	log.Printf("server listening at %v", lis.Addr())
 	if err = s.Serve(lis); err != nil {
