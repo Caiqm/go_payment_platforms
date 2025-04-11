@@ -3,7 +3,8 @@ syntax = "proto3";
 package douyin_pb;
 option go_package = "../douyin_pb;douyin_pb";
 
-message DyPayTransactionRequest {
+// 支付参数
+message PayTransactionRequest {
   string OutOrderNo = 1;
   float TotalAmount = 2;
   uint32 PayExpireSeconds = 3;
@@ -12,7 +13,10 @@ message DyPayTransactionRequest {
   repeated SkuList SkuList = 6;
   EntrySchema OrderEntrySchema = 7;
   repeated uint32 LimitPayWayList = 8;
-  string SkuAttr = 9;
+  string AppId = 9;
+  string Secret = 10;
+  string PrivateKey = 11;
+  string KeyVersion = 12;
 }
 
 message SkuList {
@@ -24,6 +28,7 @@ message SkuList {
   uint32 Type = 6;
   string TagGroupId = 7;
   EntrySchema EntrySchema = 8;
+  string SkuAttr = 9;
 }
 
 message EntrySchema {
@@ -31,16 +36,68 @@ message EntrySchema {
   string Params = 2;
 }
 
-message DyPayTransactionReply {
+message PayTransactionReply {
   string Data = 1;
   string ByteAuthorization = 2;
 }
 
+// 查询订单
 message TransactionOrderQueryRequest {
   string OrderId = 1;
   string OutOrderNo = 2;
+  string AppId = 3;
+  string Secret = 4;
+}
+
+message TransactionOrderQueryReply {
+  bytes TransactionOrderQueryResult = 1;
+}
+
+// 发起退款
+message RefundTransactionRequest {
+  string OrderId = 1;
+  string OutRefundNo = 2;
+  float RefundTotalAmount = 3;
+  repeated RefundReason RefundReason = 4;
+  string RefundNotifyUrl = 5;
+  string CpExtra = 6;
+  bool RefundAll = 7;
+  EntrySchema OrderEntrySchema = 8;
+  repeated ItemOrderDetail ItemOrderDetail = 9;
+  string AppId = 10;
+  string Secret = 11;
+}
+
+message RefundReason {
+  int64 Code = 1;
+  string Text = 2;
+}
+
+message ItemOrderDetail {
+  string ItemOrderId = 1;
+  float RefundAmount = 2;
+}
+
+message RefundTransactionReply {
+  bytes RefundTransactionResult = 1;
+}
+
+// 查询退款
+message RefundTransactionQueryRequest {
+  string OrderId = 1;
+  string OutRefundNo = 2;
+  string RefundId = 3;
+  string AppId = 4;
+  string Secret = 5;
+}
+
+message RefundTransactionQueryReply {
+  bytes RefundTransactionQueryResult = 1;
 }
 
 service DyPay {
-  rpc TradeTransaction (DyPayTransactionRequest) returns (DyPayTransactionReply) {}
+  rpc TradeTransaction (PayTransactionRequest) returns (PayTransactionReply) {}
+  rpc TradeTransactionOrderQuery (TransactionOrderQueryRequest) returns (TransactionOrderQueryReply) {}
+  rpc TradeRefundTransaction (RefundTransactionRequest) returns (RefundTransactionReply) {}
+  rpc TradeRefundTransactionQuery (RefundTransactionQueryRequest) returns (RefundTransactionQueryReply) {}
 }
